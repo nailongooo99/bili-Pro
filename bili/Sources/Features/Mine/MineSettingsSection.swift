@@ -5,7 +5,14 @@ struct MineSettingsSection: View {
     let onOpenRoute: (MineOverlayRoute) -> Void
 
     var body: some View {
+        /* Following list is exposed from the same settings surface as the original app. */
         Section("设置") {
+            MineOverlayNavigationButton {
+                onOpenRoute(.followings)
+            } label: {
+                Label("Following", systemImage: "person.2")
+            }
+
             MineOverlayNavigationButton {
                 onOpenRoute(.interfaceSettings)
             } label: {

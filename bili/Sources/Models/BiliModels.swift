@@ -8105,3 +8105,25 @@ private extension KeyedDecodingContainer {
         return nil
     }
 }
+nonisolated struct FollowingUser: Codable, Hashable, Identifiable, Sendable {
+    let mid: Int
+    let name: String
+    let face: String?
+    let sign: String?
+    let special: Bool?
+
+    var id: Int { mid }
+}
+
+nonisolated struct FollowingPage: Codable, Sendable {
+    let list: [FollowingUser]
+    let total: Int?
+    let pn: Int?
+    let ps: Int?
+    let hasMore: Bool?
+
+    enum CodingKeys: String, CodingKey {
+        case list, total, pn, ps
+        case hasMore = "has_more"
+    }
+}

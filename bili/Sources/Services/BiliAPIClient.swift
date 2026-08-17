@@ -2339,6 +2339,31 @@ nonisolated final class BiliAPIClient {
         throw BiliAPIError.missingSESSDATA
     }
 
+    func fetchFollowingUsers(page: Int = 1, pageSize: Int = 50) async throws -> FollowingPage {
+        let snapshot = await requestSnapshot()
+        guard snapshot.isLoggedIn, let mid = snapshot.currentUserMID, mid > 0 else {
+            throw BiliAPIError.missingSESSDATA
+        }
+        let response: BiliResponse<FollowingPage> = try await get(
+            base: baseURL,
+            path: "/x/relation/followings",
+            query: [
+                "vmid": String(mid),
+                "pn": String(max(1, page)),
+                "ps": String(min(max(1, pageSize), 50)),
+                "order": "attention",
+                "order_type": "attention"
+            ],
+            referer: "https://space.bilibili.com/(mid)/fans/follow",
+            userAgent: Self.webUserAgent,
+            cookieHeader: snapshot.cookieHeader,
+            cachePolicy: .reloadIgnoringLocalCacheData
+        )
+        guard response.code == 0 else { throw BiliAPIError.api(code: response.code, message: response.displayMessage) }
+        guard let payload = response.payload else { throw BiliAPIError.missingPayload }
+        return payload
+    }
+
     private func setUploaderFollowingWithWeb(mid: Int, following: Bool, csrf: String) async throws {
         let response: BiliResponse<EmptyBiliPayload> = try await postForm(
             base: baseURL,

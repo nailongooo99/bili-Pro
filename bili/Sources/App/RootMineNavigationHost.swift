@@ -42,6 +42,8 @@ struct RootMineNavigationDestination: View {
                 WebDAVBackupSettingsView()
             case .dlnaDevices:
                 DLNADevicesView()
+            case .followings:
+                FollowingsView(api: api)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
