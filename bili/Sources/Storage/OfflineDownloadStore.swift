@@ -22,6 +22,16 @@ actor OfflineDownloadStore {
         items.values.sorted { $0.createdAt > $1.createdAt }
     }
 
+    func exportData() throws -> Data {
+        try JSONEncoder().encode(allItems())
+    }
+
+    func importData(_ data: Data) throws {
+        let decoded = try JSONDecoder().decode([OfflineDownloadItem].self, from: data)
+        for item in decoded { items[item.id] = item }
+        try persist()
+    }
+
     func item(id: UUID) -> OfflineDownloadItem? {
         items[id]
     }

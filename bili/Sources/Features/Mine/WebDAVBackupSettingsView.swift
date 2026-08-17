@@ -8,6 +8,7 @@ struct WebDAVBackupSettingsView: View {
     @State private var status: String?
     @State private var isWorking = false
     private let service = WebDAVBackupService()
+    private let downloadStore = OfflineDownloadStore()
 
     var body: some View {
         Form {
@@ -44,6 +45,14 @@ struct WebDAVBackupSettingsView: View {
             } header: {
                 Text("备份")
             }
+
+            Section {
+                Button("备份离线下载清单") { Task { await backupDownloads() } }
+                Button("恢复离线下载清单") { Task { await restoreDownloads() } }
+                    .disabled(isWorking)
+            } footer: {
+                Text("备份只包含离线下载清单，不包含登录凭据。恢复后仍需重新获取可用播放地址。")
+            }
         }
         .navigationTitle("WebDAV 备份")
     }
@@ -65,5 +74,32 @@ struct WebDAVBackupSettingsView: View {
         } catch {
             status = error.localizedDescription
         }
+    }
+
+    private func configuration() -> WebDAVConfiguration? {
+        guard let url = URL(string: endpoint), !username.isEmpty else { return nil }
+        return WebDAVConfiguration(baseURL: url, username: username)
+    }
+
+    private func backupDownloads() async {
+        guard let configuration = configuration() else { status = "请先填写并保存 WebDAV 连接"; return }
+        isWorking = true
+        defer { isWorking = false }
+        do {
+            let data = try await downloadStore.exportData()
+            try await service.upload(data, configuration: configuration)
+            status = "离线下载清单已备份"
+        } catch { status = error.localizedDescription }
+    }
+
+    private func restoreDownloads() async {
+        guard let configuration = configuration() else { status = "请先填写并保存 WebDAV 连接"; return }
+        isWorking = true
+        defer { isWorking = false }
+        do {
+            let data = try await service.download(configuration: configuration)
+            try await downloadStore.importData(data)
+            status = "离线下载清单已恢复"
+        } catch { status = error.localizedDescription }
     }
 }
