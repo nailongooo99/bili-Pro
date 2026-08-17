@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import AVFoundation
 
 @MainActor
 final class OfflineDownloadManager: ObservableObject {
@@ -81,8 +82,11 @@ final class OfflineDownloadManager: ObservableObject {
                 let (videoTemporaryURL, _) = try await session.download(from: item.videoURL ?? URL(fileURLWithPath: ""))
                 try replace(videoTemporaryURL, with: videoDestination)
                 if let audioURL = item.audioURL {
+                    let audioDestination = item.directoryURL.appendingPathComponent("audio.m4a")
                     let (audioTemporaryURL, _) = try await session.download(from: audioURL)
-                    try replace(audioTemporaryURL, with: item.directoryURL.appendingPathComponent("audio.m4a"))
+                    try replace(audioTemporaryURL, with: audioDestination)
+                    try await mux(videoURL: videoDestination, audioURL: audioDestination, outputURL: videoDestination)
+                    try? FileManager.default.removeItem(at: audioDestination)
                 }
                 _ = try await store.update(id: item.id) {
                     $0.state = .completed
@@ -111,5 +115,44 @@ final class OfflineDownloadManager: ObservableObject {
     private func replace(_ source: URL, with destination: URL) throws {
         try? FileManager.default.removeItem(at: destination)
         try FileManager.default.moveItem(at: source, to: destination)
+    }
+
+    private func mux(videoURL: URL, audioURL: URL, outputURL: URL) async throws {
+        let videoAsset = AVURLAsset(url: videoURL)
+        let audioAsset = AVURLAsset(url: audioURL)
+        let composition = AVMutableComposition()
+        guard let videoTrack = try await videoAsset.loadTracks(withMediaType: .video).first,
+              let audioTrack = try await audioAsset.loadTracks(withMediaType: .audio).first else {
+            throw OfflineDownloadError.missingMediaTrack
+        }
+        let duration = try await videoAsset.load(.duration)
+        let videoCompositionTrack = composition.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid)
+        let audioCompositionTrack = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid)
+        try videoCompositionTrack?.insertTimeRange(CMTimeRange(start: .zero, duration: duration), of: videoTrack, at: .zero)
+        let audioDuration = try await audioAsset.load(.duration)
+        let outputDuration = min(duration.seconds, audioDuration.seconds)
+        try audioCompositionTrack?.insertTimeRange(CMTimeRange(start: .zero, duration: CMTime(seconds: outputDuration, preferredTimescale: 600)), of: audioTrack, at: .zero)
+
+        let temporaryURL = outputURL.deletingLastPathComponent().appendingPathComponent("muxed.mp4")
+        try? FileManager.default.removeItem(at: temporaryURL)
+        guard let exporter = AVAssetExportSession(asset: composition, presetName: AVAssetExportPresetHighestQuality) else {
+            throw OfflineDownloadError.exportUnavailable
+        }
+        exporter.outputURL = temporaryURL
+        exporter.outputFileType = .mp4
+        try await exporter.export()
+        try replace(temporaryURL, with: outputURL)
+    }
+}
+
+private enum OfflineDownloadError: LocalizedError {
+    case missingMediaTrack
+    case exportUnavailable
+
+    var errorDescription: String? {
+        switch self {
+        case .missingMediaTrack: return "The downloaded media did not contain compatible audio and video tracks."
+        case .exportUnavailable: return "The device could not create a local media export session."
+        }
     }
 }
