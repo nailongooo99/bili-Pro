@@ -1962,6 +1962,7 @@ nonisolated final class BiliAPIClient {
         let response: BiliResponse<DynamicJSONValue> = try await get(
             base: baseURL,
             path: "/x/v2/history/toview",
+            query: [:],
             cookieHeader: snapshot.cookieHeader
         )
         guard response.code == 0 else { throw BiliAPIError.api(code: response.code, message: response.displayMessage) }
