@@ -6243,6 +6243,39 @@ nonisolated final class BiliAPIClient {
         }
     }
 
+    func publishTextDynamic(_ content: String) async throws {
+        let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { throw BiliAPIError.api(code: -1, message: "动态内容不能为空") }
+        let context = try await requireCSRFContext(for: .interaction)
+        let dynRequest: [String: Any] = [
+            "content": [
+                "contents": [["raw_text": trimmed, "type": 1, "biz_id": ""]]
+            ],
+            "scene": 1,
+            "upload_id": "0_\(Int(Date().timeIntervalSince1970))",
+            "meta": ["app_meta": ["from": "create.dynamic.web", "mobi_app": "web"]]
+        ]
+        let data = try JSONSerialization.data(withJSONObject: dynRequest)
+        guard let dynRequestJSON = String(data: data, encoding: .utf8) else {
+            throw BiliAPIError.emptyData
+        }
+        let response: BiliResponse<DynamicJSONValue> = try await postForm(
+            base: baseURL,
+            path: "/x/dynamic/feed/create/dyn",
+            body: [
+                "dyn_req": dynRequestJSON,
+                "platform": "web",
+                "csrf": context.csrf
+            ],
+            referer: "https://t.bilibili.com/",
+            cookieHeader: context.snapshot.cookieHeader,
+            retryPolicy: .idempotentMutation
+        )
+        guard response.code == 0 else {
+            throw BiliAPIError.api(code: response.code, message: response.displayMessage)
+        }
+    }
+
     private func requestUploaderDynamicFeed(
         mid: Int,
         offset: String?,

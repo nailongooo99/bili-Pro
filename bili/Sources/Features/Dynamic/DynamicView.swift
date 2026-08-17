@@ -20,16 +20,35 @@ private struct DynamicContentRoot: View {
     @ObservedObject var sessionStore: SessionStore
     @StateObject private var holder = DynamicViewModelHolder()
     @StateObject private var pullRefreshSettings = PullRefreshRuntimeSettingsStore()
+    @State private var isComposerPresented = false
 
     var body: some View {
         Group {
             if let viewModel = holder.viewModel {
-                DynamicFeedScreenContent(
-                    api: api,
-                    viewModel: viewModel,
-                    isLoggedIn: sessionStore.isLoggedIn,
-                    pullRefreshTriggerDistance: CGFloat(pullRefreshSettings.triggerDistance)
-                )
+                VStack(spacing: 0) {
+                    if sessionStore.isLoggedIn {
+                        Button {
+                            isComposerPresented = true
+                        } label: {
+                            Label("发布动态", systemImage: "square.and.pencil")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .buttonStyle(.bordered)
+                        .padding(.horizontal)
+                        .padding(.vertical, 8)
+                    }
+                    DynamicFeedScreenContent(
+                        api: api,
+                        viewModel: viewModel,
+                        isLoggedIn: sessionStore.isLoggedIn,
+                        pullRefreshTriggerDistance: CGFloat(pullRefreshSettings.triggerDistance)
+                    )
+                }
+                .sheet(isPresented: $isComposerPresented) {
+                    DynamicComposerView(api: api) {
+                        Task { await viewModel.refresh() }
+                    }
+                }
             } else {
                 DynamicInitialFeedContent(isLoggedIn: sessionStore.isLoggedIn)
                     .task {
