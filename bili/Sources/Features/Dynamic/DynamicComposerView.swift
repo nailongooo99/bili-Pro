@@ -18,31 +18,35 @@ struct DynamicComposerView: View {
                     .frame(minHeight: 180)
                     .overlay(alignment: .topLeading) {
                         if content.isEmpty {
-                            Text("分享此刻的想法…")
+                            Text("Share something...")
                                 .foregroundStyle(.secondary)
                                 .padding(.top, 20)
                                 .padding(.leading, 18)
                                 .allowsHitTesting(false)
                         }
                     }
-                Text("纯文字动态")
+                Text("Text dynamic")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Spacer()
             }
             .padding()
-            .navigationTitle("发布动态")
+            .navigationTitle("Publish dynamic")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("取消") { dismiss() }
+                    Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("发布") { Task { await publish() } }
+                    Button("Publish") { Task { await publish() } }
                         .disabled(isPublishing || content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
             }
             .overlay { if isPublishing { ProgressView() } }
-            .alert("发布失败", isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
-                Button("好", role: .cancel) { errorMessage = nil }
+            .alert("Publish failed", isPresented: Binding(
+                get: { errorMessage != nil },
+                set: { if !$0 { errorMessage = nil } }
+            )) {
+                Button("OK", role: .cancel) { errorMessage = nil }
             } message: {
                 Text(errorMessage ?? "")
             }
