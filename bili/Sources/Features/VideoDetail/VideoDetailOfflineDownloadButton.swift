@@ -6,27 +6,22 @@ struct VideoDetailOfflineDownloadButton: View {
     @State private var message: String?
 
     var body: some View {
-        Button {
-            Task { await enqueue() }
-        } label: {
-            Label("下载到本机", systemImage: "arrow.down.circle")
+        Button { Task { await enqueue() } } label: {
+            Label("Download", systemImage: "arrow.down.circle")
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .buttonStyle(.bordered)
         .disabled(viewModel.selectedPlayVariant?.videoURL == nil || isAlreadyQueued)
         .overlay(alignment: .trailing) {
             if isAlreadyQueued {
-                Text("已加入")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .padding(.trailing, 12)
+                Text("Added").font(.caption).foregroundStyle(.secondary).padding(.trailing, 12)
             }
         }
-        .alert("离线下载", isPresented: Binding(
+        .alert("Offline Download", isPresented: Binding(
             get: { message != nil },
             set: { if !$0 { message = nil } }
         )) {
-            Button("好", role: .cancel) { message = nil }
+            Button("OK", role: .cancel) { message = nil }
         } message: {
             Text(message ?? "")
         }
@@ -41,9 +36,8 @@ struct VideoDetailOfflineDownloadButton: View {
     private func enqueue() async {
         guard let variant = viewModel.selectedPlayVariant,
               let videoURL = variant.videoURL,
-              let cid = viewModel.selectedCID ?? viewModel.detail.cid
-        else {
-            message = "播放地址尚未准备好，请稍后再试。"
+              let cid = viewModel.selectedCID ?? viewModel.detail.cid else {
+            message = "The playback stream is not ready. Try again shortly."
             return
         }
         do {
@@ -55,7 +49,7 @@ struct VideoDetailOfflineDownloadButton: View {
                 videoURL: videoURL,
                 audioURL: variant.audioURL
             )
-            message = "已加入离线下载队列。"
+            message = "Added to the offline download queue."
         } catch {
             message = error.localizedDescription
         }
