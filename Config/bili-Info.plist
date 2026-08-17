@@ -26,6 +26,8 @@
 	<true/>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>用于将动态图片保存到系统照片图库。</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>bili-Pro 需要访问局域网中的 DLNA 设备以进行投屏。</string>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
 	<key>UIApplicationSceneManifest</key>
