@@ -37,6 +37,15 @@ struct MineAccountLibrarySection: View {
                     systemImage: "star"
                 )
             }
+
+            MineOverlayNavigationButton {
+                onOpenRoute(.offlineDownloads)
+            } label: {
+                AccountLibraryButtonRow(
+                    title: "离线下载",
+                    systemImage: "arrow.down.circle"
+                )
+            }
         } header: {
             Text("账号内容")
         }
