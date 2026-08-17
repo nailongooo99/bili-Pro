@@ -56,6 +56,12 @@ struct MineSettingsSection: View {
                 )
             }
 
+            MineOverlayNavigationButton {
+                onOpenRoute(.webDAVSettings)
+            } label: {
+                Label("WebDAV 备份", systemImage: "externaldrive.connected.to.line.below")
+            }
+
         }
     }
 

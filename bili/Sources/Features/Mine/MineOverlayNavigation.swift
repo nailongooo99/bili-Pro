@@ -11,6 +11,7 @@ enum MineOverlayRoute: Hashable {
     case playbackSettings
     case contentFilterSettings
     case privacySettings
+    case webDAVSettings
 }
 
 struct MineOverlayNavigationButton<Label: View>: View {

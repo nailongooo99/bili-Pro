@@ -59,6 +59,12 @@ actor WebDAVBackupService {
         return data
     }
 
+    func testConnection(configuration: WebDAVConfiguration) async throws {
+        let request = try makeRequest(method: "OPTIONS", configuration: configuration)
+        let (_, response) = try await session.data(for: request)
+        try validate(response)
+    }
+
     private func makeRequest(method: String, configuration: WebDAVConfiguration) throws -> URLRequest {
         let url = configuration.baseURL
             .appendingPathComponent(configuration.remotePath, isDirectory: false)

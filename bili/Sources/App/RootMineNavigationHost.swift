@@ -38,6 +38,8 @@ struct RootMineNavigationDestination: View {
                 MineContentFilterSettingsView(libraryStore: libraryStore)
             case .privacySettings:
                 MinePrivacySettingsView(libraryStore: libraryStore)
+            case .webDAVSettings:
+                WebDAVBackupSettingsView()
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
