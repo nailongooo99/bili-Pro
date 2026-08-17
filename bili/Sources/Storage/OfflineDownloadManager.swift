@@ -71,25 +71,15 @@ final class OfflineDownloadManager: ObservableObject {
         tasks[item.id]?.cancel()
         tasks[item.id] = Task { [weak self] in
             guard let self else { return }
-            guard let videoURL = item.videoURL else {
-                _ = try? await self.store.update(id: item.id) {
-                    $0.state = .failed
-                    $0.errorMessage = "No video URL is available for this download."
-                }
-                await refresh()
-                return
-            }
             _ = try? await self.store.update(id: item.id) {
                 $0.state = .downloading
                 $0.errorMessage = nil
-                $0.progress = 0
             }
             do {
                 try FileManager.default.createDirectory(at: item.directoryURL, withIntermediateDirectories: true)
                 let videoDestination = item.directoryURL.appendingPathComponent("video.mp4")
-                let (videoTemporaryURL, _) = try await session.download(from: videoURL)
+                let (videoTemporaryURL, _) = try await session.download(from: item.videoURL ?? URL(fileURLWithPath: ""))
                 try replace(videoTemporaryURL, with: videoDestination)
-                _ = try await store.update(id: item.id) { $0.progress = item.audioURL == nil ? 1 : 0.5 }
                 if let audioURL = item.audioURL {
                     let (audioTemporaryURL, _) = try await session.download(from: audioURL)
                     try replace(audioTemporaryURL, with: item.directoryURL.appendingPathComponent("audio.m4a"))

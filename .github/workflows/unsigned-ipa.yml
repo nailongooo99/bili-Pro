@@ -64,11 +64,16 @@ jobs:
           cp -R "$APP_PATH" "$BUILD_DIR/Payload/"
           (cd "$BUILD_DIR" && zip -qry "$GITHUB_WORKSPACE/bili-pro-release-unsigned.ipa" Payload)
 
+      - name: Generate IPA checksum
+        run: shasum -a 256 bili-pro-release-unsigned.ipa | tee bili-pro-release-unsigned.ipa.sha256
+
       - name: Upload unsigned IPA
         uses: actions/upload-artifact@v4
         with:
           name: bili-pro-release-unsigned-ipa
-          path: bili-pro-release-unsigned.ipa
+          path: |
+            bili-pro-release-unsigned.ipa
+            bili-pro-release-unsigned.ipa.sha256
           if-no-files-found: error
 
       - name: Upload build diagnostics
