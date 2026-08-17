@@ -1,0 +1,75 @@
+# Xcode
+DerivedData/
+build/
+Build/
+*.xcarchive/
+*.xcresult/
+*.xcuserstate
+*.xcscmblueprint
+*.moved-aside
+*.xccheckout
+*.xcuserdatad/
+xcuserdata/
+
+# Swift / SwiftPM
+.build/
+.swiftpm/
+.spm-local-cache/
+Package.resolved
+
+# CocoaPods / Carthage
+Pods/
+Carthage/Build/
+
+# Local app build artifacts
+.codex-derived/
+.derived-unsigned/
+.derived-unsigned-device/
+.manual-build/
+.ipa-staging/
+*.ipa
+*.app
+*.dSYM/
+*.log
+
+# Signing, secrets, and local-only config
+.env
+.env.*
+!.env.example
+*.mobileprovision
+*.provisionprofile
+*.p12
+*.cer
+*.pem
+*.key
+*.p8
+*.xcconfig.local
+Local.xcconfig
+Config/Secrets*.plist
+Config/Local*.plist
+
+# Local binary dependencies
+Frameworks/
+Packages/FFmpegKit/Sources/*.xcframework/
+.ffmpegkit-ios-binaries/
+
+# Simulator captures and local verification media
+.codex-screens/
+.tmp/
+*.png
+*.jpg
+*.jpeg
+*.heic
+*.mov
+*.mp4
+!bili/Assets.xcassets/AppIcon.appiconset/*.png
+!bili/Assets.xcassets/AppIconLight.appiconset/*.png
+!bili/Assets.xcassets/AppIconDark.appiconset/*.png
+!bili/Assets.xcassets/LaunchLogo.imageset/*.png
+!bili/Assets.xcassets/LaunchScreenLogo.imageset/*.png
+!bili/Assets.xcassets/LaunchSplash.imageset/*.jpg
+!bili/Resources/*.png
+!assets/alipay-support.jpg
+
+# macOS
+.DS_Store
