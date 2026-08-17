@@ -86,6 +86,8 @@ private struct FollowingTagManagerView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var tags: [FollowingTag] = []
     @State private var newName = ""
+    @State private var editingTag: FollowingTag?
+    @State private var editName = ""
 
     var body: some View {
         NavigationStack {
@@ -102,6 +104,7 @@ private struct FollowingTagManagerView: View {
                             Text(tag.name)
                             Spacer()
                             Text("\(tag.count ?? 0)").foregroundStyle(.secondary)
+                            Button { editingTag = tag; editName = tag.name } label: { Image(systemName: "pencil") }
                             Button { Task { try? await api.deleteFollowingTag(id: tag.tagID); await reload() } } label: { Image(systemName: "trash") }.tint(.red)
                         }
                     }
@@ -109,6 +112,20 @@ private struct FollowingTagManagerView: View {
             }
             .navigationTitle("Following Groups")
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() } } }
+            .sheet(item: $editingTag) { tag in
+                NavigationStack {
+                    Form { TextField("Group name", text: $editName) }
+                        .navigationTitle("Rename Group")
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) { Button("Cancel") { editingTag = nil } }
+                            ToolbarItem(placement: .confirmationAction) {
+                                Button("Save") { Task { try? await api.renameFollowingTag(id: tag.tagID, name: editName); editingTag = nil; await reload() } }
+                                    .disabled(editName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                            }
+                        }
+                }
+                .presentationDetents([.height(180)])
+            }
             .task { await reload() }
         }
     }
