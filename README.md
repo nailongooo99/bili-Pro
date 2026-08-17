@@ -1,33 +1,34 @@
 # bili-Pro
 
-基于 [cilicili](https://github.com/Rone89/cilicili) 的 Swift 6 + SwiftUI Bilibili 第三方 iOS 客户端。项目保留 cilicili 的原生 UI、播放器和交互基础，并以 [PiliPlus](https://github.com/bggRGjQaUbCoE/PiliPlus) 的功能覆盖作为后续补齐目标。
+An open-source iOS Bilibili client based on [cilicili](https://github.com/Rone89/cilicili), built with Swift 6 and SwiftUI. bili-Pro preserves the original cilicili visual language, AVPlayer/HLS playback pipeline, and interaction foundation while adding feature parity work inspired by [PiliPlus](https://github.com/bggRGjQaUbCoE/PiliPlus).
 
-## 当前基线
+## Current capabilities
 
-- Swift 6 / SwiftUI
-- iOS 26.4+
-- AVPlayer + HLS Bridge 播放链路
-- Keychain 登录态存储
-- 首页推荐、搜索、UP 主空间、动态、视频详情、评论、弹幕和视频互动
-- `.github/workflows/unsigned-ipa.yml` 自动构建未签名 IPA
+- Swift 6, SwiftUI, iOS 26.4+
+- AVPlayer/HLS playback with quality selection, danmaku, subtitles, playback history, and local playback
+- Recommendation home, search, uploader spaces, dynamic feed, video details, related videos, live rooms, and PGC playback
+- Comments and replies, like, coin, favorite, follow, share, private messages, account messages, and multi-account sessions
+- Keychain-backed credentials, offline download queue, WebDAV manifest backup, DLNA discovery and playback handoff
+- Follow-list filtering and follow-group management
+- SponsorBlock and playback/CDN diagnostics
 
-## 开发原则
+## Architecture
 
-所有新增功能使用 Swift 原生实现，不移植 Flutter/Dart 代码；业务逻辑通过 `BiliAPIClient`、领域模型和 Feature ViewModel 接入现有架构。敏感登录凭据不得提交到仓库，普通偏好使用 UserDefaults，凭据使用 Keychain。
+Network requests are isolated in `BiliAPIClient`; response DTOs are mapped into domain models before reaching feature view models and SwiftUI views. Credentials are stored in Keychain. Ordinary preferences use UserDefaults. Offline download metadata is persisted as a JSON manifest under Application Support and media files remain local to the device.
 
-## 本地构建
+New functionality is implemented in Swift/SwiftUI. Flutter/Dart source is not copied into this project.
 
-需要 macOS、Xcode 26.4+ 和 iOS 26.4 SDK。Windows 环境不能运行 Xcode，本地可通过 GitHub Actions 构建。
+## Build
+
+Xcode 26.4+ and the iOS 26.4 SDK are required. Windows cannot run Xcode locally; pushes to `main` start the GitHub Actions workflow `Build unsigned IPA`.
 
 ```bash
 xcodebuild -project bili.xcodeproj -scheme bili -configuration Debug \
   -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' build
 ```
 
-## 构建未签名 IPA
+The workflow builds `bili-pro-release-unsigned.ipa` and uploads it as `bili-pro-release-unsigned-ipa`. An unsigned IPA is an intermediate artifact and requires signing before ordinary device installation or distribution.
 
-推送到 `main` 或在 Actions 中手动运行 `Build unsigned IPA`，构建产物会作为 `bili-pro-release-unsigned-ipa` artifact 上传。未签名 IPA 不能直接安装到 iPhone，也不能用于 App Store/TestFlight 发布，仍需后续签名。
+## License
 
-## 许可证与致谢
-
-本项目遵循 GPLv3，并保留上游 cilicili 及其他第三方项目的版权和许可证声明。Bilibili 是其权利人的商标和服务，项目与 Bilibili 官方没有隶属关系。
+GPLv3. Bilibili is a trademark and service of its respective owner. This project is not affiliated with Bilibili.
