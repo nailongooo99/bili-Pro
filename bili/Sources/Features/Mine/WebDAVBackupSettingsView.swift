@@ -12,18 +12,20 @@ struct WebDAVBackupSettingsView: View {
 
     var body: some View {
         Form {
-            Section("Connection") {
+            Section {
                 TextField("WebDAV URL", text: $endpoint)
                     .textInputAutocapitalization(.never)
                     .keyboardType(.URL)
                 TextField("Username", text: $username)
                     .textInputAutocapitalization(.never)
                 SecureField("Password", text: $password)
+            } header: {
+                Text("Connection")
             } footer: {
                 Text("The password is stored only in Keychain and is never written to UserDefaults or backup files.")
             }
 
-            Section("Backup") {
+            Section {
                 Button {
                     Task { await saveAndTest() }
                 } label: {
@@ -38,6 +40,8 @@ struct WebDAVBackupSettingsView: View {
                 if let status {
                     Text(status).font(.footnote).foregroundStyle(.secondary)
                 }
+            } header: {
+                Text("Backup")
             }
 
             Section {
