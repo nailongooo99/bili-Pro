@@ -40,6 +40,8 @@ struct RootMineNavigationDestination: View {
                 MinePrivacySettingsView(libraryStore: libraryStore)
             case .webDAVSettings:
                 WebDAVBackupSettingsView()
+            case .dlnaDevices:
+                DLNADevicesView()
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

@@ -82,7 +82,8 @@ actor DLNAService {
     }
 
     func play(url: URL, on device: DLNADevice) async throws {
-        guard let controlURL = device.controlURL else { throw DLNAError.unsupportedDevice }
+        let resolvedDevice = try await resolve(device)
+        guard let controlURL = resolvedDevice.controlURL else { throw DLNAError.unsupportedDevice }
         let escapedURL = url.absoluteString.replacingOccurrences(of: "&", with: "&amp;")
         let body = """
         <?xml version="1.0" encoding="utf-8"?>
@@ -99,6 +100,18 @@ actor DLNAService {
         }
     }
 
+    func resolve(_ device: DLNADevice) async throws -> DLNADevice {
+        let (data, response) = try await session.data(from: device.location)
+        guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode),
+              let xml = String(data: data, encoding: .utf8)
+        else { throw DLNAError.requestFailed }
+        let friendlyName = Self.xmlValue("friendlyName", in: xml) ?? device.name
+        let serviceBlock = Self.serviceBlock(for: "urn:schemas-upnp-org:service:AVTransport:1", in: xml)
+        let controlPath = serviceBlock.flatMap { Self.xmlValue("controlURL", in: $0) }
+        let controlURL = controlPath.flatMap { URL(string: $0, relativeTo: device.location)?.absoluteURL }
+        return DLNADevice(id: device.id, name: friendlyName, location: device.location, controlURL: controlURL)
+    }
+
     private static func parseDevice(_ response: String) -> DLNADevice? {
         let headers = response.split(separator: "\n").reduce(into: [String: String]()) { result, line in
             let parts = line.split(separator: ":", maxSplits: 1).map(String.init)
@@ -109,5 +122,24 @@ actor DLNAService {
         let id = headers["usn"] ?? location.absoluteString
         let name = headers["server"] ?? location.host ?? "DLNA 设备"
         return DLNADevice(id: id, name: name, location: location, controlURL: nil)
+    }
+
+    private static func serviceBlock(for serviceType: String, in xml: String) -> String? {
+        let escaped = NSRegularExpression.escapedPattern(for: serviceType)
+        let pattern = "<service>(?:(?!</service>).)*<serviceType>\\s*\(escaped)\\s*</serviceType>(?:(?!</service>).)*</service>"
+        guard let expression = try? NSRegularExpression(pattern: pattern, options: [.dotMatchesLineSeparators]),
+              let match = expression.firstMatch(in: xml, range: NSRange(xml.startIndex..., in: xml)),
+              let range = Range(match.range, in: xml)
+        else { return nil }
+        return String(xml[range])
+    }
+
+    private static func xmlValue(_ tag: String, in xml: String) -> String? {
+        let pattern = "<\(tag)>\\s*([^<]+?)\\s*</\(tag)>"
+        guard let expression = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive, .dotMatchesLineSeparators]),
+              let match = expression.firstMatch(in: xml, range: NSRange(xml.startIndex..., in: xml)),
+              let range = Range(match.range(at: 1), in: xml)
+        else { return nil }
+        return String(xml[range]).trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }

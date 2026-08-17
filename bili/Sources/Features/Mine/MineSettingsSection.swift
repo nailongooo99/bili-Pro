@@ -62,6 +62,12 @@ struct MineSettingsSection: View {
                 Label("WebDAV 备份", systemImage: "externaldrive.connected.to.line.below")
             }
 
+            MineOverlayNavigationButton {
+                onOpenRoute(.dlnaDevices)
+            } label: {
+                Label("DLNA 投屏", systemImage: "tv")
+            }
+
         }
     }
 
