@@ -24,6 +24,8 @@ struct RootMineNavigationDestination: View {
                 )
             case .history:
                 accountLibraryPage(kind: .history)
+            case .watchLater:
+                accountLibraryPage(kind: .watchLater)
             case .favorites:
                 accountLibraryPage(kind: .favorites)
             case .offlineDownloads:

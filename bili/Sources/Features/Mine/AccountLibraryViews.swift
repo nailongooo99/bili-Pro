@@ -39,11 +39,11 @@ enum AccountLibraryKind: Hashable, Identifiable {
         }
     }
 
-    var loggedOutTitle: String { "Log in to view (title.lowercased())" }
-    var loadingTitle: String { "Loading (title.lowercased())" }
-    var errorTitle: String { "Unable to load (title.lowercased())" }
-    var loadMoreTitle: String { "Loading more (title.lowercased())" }
-    var loadMoreErrorTitle: String { "Unable to load more (title.lowercased())" }
+    var loggedOutTitle: String { "Log in to view \(title.lowercased())" }
+    var loadingTitle: String { "Loading \(title.lowercased())" }
+    var errorTitle: String { "Unable to load \(title.lowercased())" }
+    var loadMoreTitle: String { "Loading more \(title.lowercased())" }
+    var loadMoreErrorTitle: String { "Unable to load more \(title.lowercased())" }
 }
 
 struct AccountLibraryButtonRow: View {
