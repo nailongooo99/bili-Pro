@@ -110,6 +110,16 @@ final class MineViewModel: ObservableObject {
         }
     }
 
+    func removeWatchLater(_ item: AccountVideoEntry) async {
+        guard sessionStore.isLoggedIn, let aid = item.aid else { return }
+        do {
+            try await api.removeFromWatchLater(aid: aid)
+            watchLater.removeAll { $0.id == item.id }
+        } catch {
+            watchLaterState = .failed(error.localizedDescription)
+        }
+    }
+
     func refreshFavorites() async {
         guard sessionStore.isLoggedIn else { return }
         favoriteState = .loading

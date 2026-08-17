@@ -50,6 +50,15 @@ struct AccountLibraryListPage: View {
                 VideoRouteLink(item.videoItem) {
                     LibraryVideoRow(item: item, timestampTitle: kind.timestampTitle)
                 }
+                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                    if kind == .watchLater {
+                        Button(role: .destructive) {
+                            Task { await viewModel.removeWatchLater(item) }
+                        } label: {
+                            Label("Remove", systemImage: "trash")
+                        }
+                    }
+                }
                 .task {
                     await loadMoreIfNeeded(current: item)
                 }
