@@ -2,90 +2,48 @@ import SwiftUI
 
 enum AccountLibraryKind: Hashable, Identifiable {
     case history
+    case watchLater
     case favorites
 
     var id: Self { self }
 
     var title: String {
         switch self {
-        case .history:
-            return "观看记录"
-        case .favorites:
-            return "账号收藏"
+        case .history: return "Watch history"
+        case .watchLater: return "Watch later"
+        case .favorites: return "Favorites"
         }
     }
 
     var systemImage: String {
         switch self {
-        case .history:
-            return "clock.arrow.circlepath"
-        case .favorites:
-            return "star"
+        case .history: return "clock.arrow.circlepath"
+        case .watchLater: return "bookmark"
+        case .favorites: return "star"
         }
     }
 
     var timestampTitle: String {
         switch self {
-        case .history:
-            return "最近观看"
-        case .favorites:
-            return "收藏时间"
+        case .history: return "Watched"
+        case .watchLater: return "Saved"
+        case .favorites: return "Favorited"
         }
     }
 
     var emptyTitle: String {
         switch self {
-        case .history:
-            return "账号里还没有观看记录"
-        case .favorites:
-            return "账号收藏夹还没有内容"
+        case .history: return "No watch history"
+        case .watchLater: return "No videos saved for later"
+        case .favorites: return "No favorite videos"
         }
     }
 
-    var loggedOutTitle: String {
-        switch self {
-        case .history:
-            return "登录后同步账号观看记录"
-        case .favorites:
-            return "登录后同步账号收藏"
-        }
-    }
-
-    var loadingTitle: String {
-        switch self {
-        case .history:
-            return "正在同步观看记录"
-        case .favorites:
-            return "正在同步账号收藏"
-        }
-    }
-
-    var errorTitle: String {
-        switch self {
-        case .history:
-            return "观看记录同步失败"
-        case .favorites:
-            return "账号收藏同步失败"
-        }
-    }
-
-    var loadMoreTitle: String {
-        switch self {
-        case .history:
-            return "正在加载更多观看记录"
-        case .favorites:
-            return "正在加载更多收藏"
-        }
-    }
-
-    var loadMoreErrorTitle: String {
-        switch self {
-        case .history:
-            return "更多观看记录加载失败"
-        case .favorites:
-            return "更多收藏加载失败"
-        }
-    }
+    var loggedOutTitle: String { "Log in to view (title.lowercased())" }
+    var loadingTitle: String { "Loading (title.lowercased())" }
+    var errorTitle: String { "Unable to load (title.lowercased())" }
+    var loadMoreTitle: String { "Loading more (title.lowercased())" }
+    var loadMoreErrorTitle: String { "Unable to load more (title.lowercased())" }
 }
 
 struct AccountLibraryButtonRow: View {
@@ -107,13 +65,10 @@ struct AccountLibraryButtonRow: View {
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(appTintColor)
                 .frame(width: 28, height: 28)
-
             Text(title)
                 .appTypography(.settingsRow, fallback: .subheadline)
                 .foregroundStyle(.primary)
-
             Spacer(minLength: 8)
-
             if let badgeText {
                 Text(badgeText)
                     .appTypography(.badge, fallback: .caption2.weight(.bold))
@@ -122,7 +77,6 @@ struct AccountLibraryButtonRow: View {
                     .padding(.horizontal, 6)
                     .frame(minWidth: 20, minHeight: 20)
                     .background(.red, in: Capsule())
-                    .accessibilityLabel("\(badgeText) 条未读")
             }
         }
     }

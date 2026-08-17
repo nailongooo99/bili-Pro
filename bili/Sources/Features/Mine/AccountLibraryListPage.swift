@@ -94,6 +94,8 @@ struct AccountLibraryListPage: View {
         switch kind {
         case .history:
             return viewModel.accountHistory
+        case .watchLater:
+            return viewModel.watchLater
         case .favorites:
             return viewModel.accountFavorites
         }
@@ -103,6 +105,8 @@ struct AccountLibraryListPage: View {
         switch kind {
         case .history:
             return viewModel.historyState
+        case .watchLater:
+            return viewModel.watchLaterState
         case .favorites:
             return viewModel.favoriteState
         }
@@ -116,6 +120,8 @@ struct AccountLibraryListPage: View {
         switch kind {
         case .history:
             return viewModel.historyLoadMoreState
+        case .watchLater:
+            return .idle
         case .favorites:
             return .idle
         }
@@ -125,6 +131,8 @@ struct AccountLibraryListPage: View {
         switch kind {
         case .history:
             return viewModel.historyHasMore
+        case .watchLater:
+            return false
         case .favorites:
             return false
         }
@@ -139,6 +147,8 @@ struct AccountLibraryListPage: View {
         switch kind {
         case .history:
             await viewModel.refreshHistory()
+        case .watchLater:
+            await viewModel.refreshWatchLater()
         case .favorites:
             await viewModel.refreshFavorites()
         }
@@ -148,6 +158,8 @@ struct AccountLibraryListPage: View {
         switch kind {
         case .history:
             await viewModel.loadMoreHistoryIfNeeded(current: item)
+        case .watchLater:
+            break
         case .favorites:
             break
         }
@@ -157,6 +169,8 @@ struct AccountLibraryListPage: View {
         switch kind {
         case .history:
             await viewModel.loadMoreHistory()
+        case .watchLater:
+            break
         case .favorites:
             break
         }

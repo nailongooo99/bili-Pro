@@ -1956,6 +1956,42 @@ nonisolated final class BiliAPIClient {
         )
     }
 
+    func fetchWatchLater() async throws -> [AccountVideoEntry] {
+        let snapshot = await requestSnapshot(purpose: .historyRead)
+        guard snapshot.isLoggedIn else { throw BiliAPIError.missingSESSDATA }
+        let response: BiliResponse<DynamicJSONValue> = try await get(
+            base: baseURL,
+            path: "/x/v2/history/toview",
+            cookieHeader: snapshot.cookieHeader
+        )
+        guard response.code == 0 else { throw BiliAPIError.api(code: response.code, message: response.displayMessage) }
+        return response.payload?.accountVideoEntries ?? []
+    }
+
+    func addToWatchLater(aid: Int) async throws {
+        let snapshot = await requestSnapshot(purpose: .historyWrite)
+        guard snapshot.isLoggedIn, let csrf = snapshot.csrfToken else { throw BiliAPIError.missingSESSDATA }
+        let response: BiliResponse<EmptyBiliPayload> = try await postForm(
+            base: baseURL,
+            path: "/x/v2/history/toview/add",
+            body: ["aid": String(aid), "csrf": csrf],
+            cookieHeader: snapshot.cookieHeader
+        )
+        guard response.code == 0 else { throw BiliAPIError.api(code: response.code, message: response.displayMessage) }
+    }
+
+    func removeFromWatchLater(aid: Int) async throws {
+        let snapshot = await requestSnapshot(purpose: .historyWrite)
+        guard snapshot.isLoggedIn, let csrf = snapshot.csrfToken else { throw BiliAPIError.missingSESSDATA }
+        let response: BiliResponse<EmptyBiliPayload> = try await postForm(
+            base: baseURL,
+            path: "/x/v2/history/toview/del",
+            body: ["aid": String(aid), "csrf": csrf],
+            cookieHeader: snapshot.cookieHeader
+        )
+        guard response.code == 0 else { throw BiliAPIError.api(code: response.code, message: response.displayMessage) }
+    }
+
     func fetchVideoHistoryProgress(aid: Int) async throws -> VideoHistoryProgress {
         let snapshot = await requestSnapshot(purpose: .historyRead)
         guard snapshot.isLoggedIn else { throw BiliAPIError.missingSESSDATA }

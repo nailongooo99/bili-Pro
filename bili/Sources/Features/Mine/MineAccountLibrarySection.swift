@@ -30,6 +30,15 @@ struct MineAccountLibrarySection: View {
             }
 
             MineOverlayNavigationButton {
+                onOpenRoute(.watchLater)
+            } label: {
+                AccountLibraryButtonRow(
+                    title: "Watch later",
+                    systemImage: "bookmark"
+                )
+            }
+
+            MineOverlayNavigationButton {
                 onOpenRoute(.favorites)
             } label: {
                 AccountLibraryButtonRow(

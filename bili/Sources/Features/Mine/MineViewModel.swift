@@ -7,6 +7,7 @@ final class MineViewModel: ObservableObject {
     @Published var loginMessage = ""
     @Published var qrLoginState: QRCodeLoginState = .idle
     @Published var historyState: LoadingState = .idle
+    @Published var watchLaterState: LoadingState = .idle
     @Published var favoriteState: LoadingState = .idle
     @Published private(set) var historyLoadMoreState: LoadingState = .idle {
         didSet { accountLibraryRevision &+= 1 }
@@ -15,6 +16,9 @@ final class MineViewModel: ObservableObject {
         didSet { accountLibraryRevision &+= 1 }
     }
     @Published var accountHistory: [AccountVideoEntry] = [] {
+        didSet { accountLibraryRevision &+= 1 }
+    }
+    @Published var watchLater: [AccountVideoEntry] = [] {
         didSet { accountLibraryRevision &+= 1 }
     }
     @Published var accountFavorites: [AccountVideoEntry] = [] {
@@ -73,8 +77,9 @@ final class MineViewModel: ObservableObject {
         }
 
         async let history: Void = refreshHistory()
+        async let watchLater: Void = refreshWatchLater()
         async let favorites: Void = refreshFavorites()
-        _ = await (history, favorites)
+        _ = await (history, watchLater, favorites)
     }
 
     func refreshHistory() async {
@@ -91,6 +96,17 @@ final class MineViewModel: ObservableObject {
             historyState = .loaded
         } catch {
             historyState = .failed(error.localizedDescription)
+        }
+    }
+
+    func refreshWatchLater() async {
+        guard sessionStore.isLoggedIn else { return }
+        watchLaterState = .loading
+        do {
+            watchLater = Self.uniqued(try await api.fetchWatchLater())
+            watchLaterState = .loaded
+        } catch {
+            watchLaterState = .failed(error.localizedDescription)
         }
     }
 
@@ -202,6 +218,7 @@ final class MineViewModel: ObservableObject {
         try? sessionStore.logout()
         BiliWebCookieStore.clearLoginCookies()
         accountHistory = []
+        watchLater = []
         accountFavorites = []
         favoriteFolders = []
         favoriteFolderEntries = [:]
@@ -213,6 +230,7 @@ final class MineViewModel: ObservableObject {
         favoriteFolderHasMore = [:]
         favoriteFolderPages = [:]
         historyState = .idle
+        watchLaterState = .idle
         favoriteState = .idle
         loginMessage = ""
         qrLoginState = .idle
