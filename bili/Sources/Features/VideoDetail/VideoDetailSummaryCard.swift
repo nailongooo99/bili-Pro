@@ -55,6 +55,8 @@ struct VideoDetailSummaryCard: View {
                 manager: offlineDownloadManager
             )
 
+            VideoDetailDLNAButton(viewModel: viewModel)
+
             if showsNetworkDiagnosticsButton {
                 VideoDetailNetworkDiagnosticsButton(action: onShowNetworkDiagnostics)
             }
