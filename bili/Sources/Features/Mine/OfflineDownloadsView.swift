@@ -4,6 +4,7 @@ struct OfflineDownloadsView: View {
     @EnvironmentObject private var manager: OfflineDownloadManager
     @State private var items: [OfflineDownloadItem] = []
     @State private var isLoading = true
+    @State private var selectedItem: OfflineDownloadItem?
 
     var body: some View {
         Group {
@@ -13,7 +14,15 @@ struct OfflineDownloadsView: View {
                 ContentUnavailableView("No Offline Downloads", systemImage: "arrow.down.circle", description: Text("Downloaded videos will appear here."))
             } else {
                 List {
-                    ForEach(items) { item in OfflineDownloadRow(item: item) }
+                    ForEach(items) { item in
+                        Button {
+                            guard item.state == .completed else { return }
+                            selectedItem = item
+                        } label: {
+                            OfflineDownloadRow(item: item)
+                        }
+                        .buttonStyle(.plain)
+                    }
                         .onDelete { offsets in
                             let ids = offsets.map { items[$0].id }
                             Task { for id in ids { await manager.remove(id: id) }; await reload() }
@@ -23,6 +32,9 @@ struct OfflineDownloadsView: View {
             }
         }
         .navigationTitle("Offline Downloads")
+        .sheet(item: $selectedItem) { item in
+            OfflineDownloadPlayer(item: item)
+        }
         .task { await reload() }
         .refreshable { await reload() }
     }
@@ -31,6 +43,25 @@ struct OfflineDownloadsView: View {
         await manager.refresh()
         items = manager.items
         isLoading = false
+    }
+}
+
+private struct OfflineDownloadPlayer: View {
+    let item: OfflineDownloadItem
+
+    var body: some View {
+        let url = item.directoryURL.appendingPathComponent("video.mp4")
+        NavigationStack {
+            BiliPlayerView(
+                videoURL: url,
+                title: item.title,
+                presentation: .embedded,
+                showsNavigationChrome: true,
+                ignoresContainerSafeArea: false
+            )
+            .navigationTitle(item.title)
+            .navigationBarTitleDisplayMode(.inline)
+        }
     }
 }
 
