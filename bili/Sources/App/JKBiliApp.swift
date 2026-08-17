@@ -50,5 +50,6 @@ private struct MainInterfaceHost: View {
             .environmentObject(dependencies.sessionStore)
             .environmentObject(dependencies.libraryStore)
             .environmentObject(dependencies.homeRecommendDiagnosticsStore)
+            .environmentObject(dependencies.offlineDownloadManager)
     }
 }

@@ -33,7 +33,7 @@ actor OfflineDownloadStore {
         return item
     }
 
-    func update(id: UUID, _ mutate: (inout OfflineDownloadItem) -> Void) throws -> OfflineDownloadItem? {
+    func update(id: UUID, _ mutate: @Sendable (inout OfflineDownloadItem) -> Void) throws -> OfflineDownloadItem? {
         guard var item = items[id] else { return nil }
         mutate(&item)
         item.updatedAt = .now

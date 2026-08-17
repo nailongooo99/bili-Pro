@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct VideoDetailSummaryCard: View {
+    @EnvironmentObject private var offlineDownloadManager: OfflineDownloadManager
     @ObservedObject var viewModel: VideoDetailViewModel
     let contentWidth: CGFloat
     let showsNetworkDiagnosticsButton: Bool
@@ -47,6 +48,11 @@ struct VideoDetailSummaryCard: View {
                 onCoin: showCoinPicker,
                 onFavorite: renderPack.actions.favorite,
                 onShareTap: renderPack.actions.share
+            )
+
+            VideoDetailOfflineDownloadButton(
+                viewModel: viewModel,
+                manager: offlineDownloadManager
             )
 
             if showsNetworkDiagnosticsButton {

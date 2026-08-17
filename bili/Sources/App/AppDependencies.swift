@@ -10,6 +10,7 @@ final class AppDependencies: ObservableObject {
     let api: BiliAPIClient
     let accountMessageService: AccountMessageService
     let sponsorBlockService: SponsorBlockService
+    let offlineDownloadManager: OfflineDownloadManager
     private let networkMetricsRecorder: BiliNetworkMetricsRecorder
     private var sessionCancellables = Set<AnyCancellable>()
     private var hasScheduledDeferredStartupWork = false
@@ -34,6 +35,7 @@ final class AppDependencies: ObservableObject {
         self.api = api
         self.accountMessageService = AccountMessageService(sessionStore: sessionStore, api: api)
         self.sponsorBlockService = SponsorBlockService()
+        self.offlineDownloadManager = OfflineDownloadManager()
         sessionStore.$playbackCredentialVersion
             .dropFirst()
             .sink { [weak self] _ in

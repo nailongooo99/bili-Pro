@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct OfflineDownloadsView: View {
-    private let store = OfflineDownloadStore()
+    @EnvironmentObject private var manager: OfflineDownloadManager
     @State private var items: [OfflineDownloadItem] = []
     @State private var isLoading = true
 
@@ -23,8 +23,7 @@ struct OfflineDownloadsView: View {
                     .onDelete { offsets in
                         let ids = offsets.map { items[$0].id }
                         Task {
-                            for id in ids { try? await store.remove(id: id, removeFiles: true) }
-                            await reload()
+                            for id in ids { await manager.remove(id: id) }
                         }
                     }
                 }
@@ -37,7 +36,8 @@ struct OfflineDownloadsView: View {
     }
 
     private func reload() async {
-        items = await store.allItems()
+        await manager.refresh()
+        items = manager.items
         isLoading = false
     }
 }
