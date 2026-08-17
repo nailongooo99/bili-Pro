@@ -54,7 +54,7 @@ jobs:
             COPY_PHASE_STRIP=YES \
             STRIP_INSTALLED_PRODUCT=YES \
             DEPLOYMENT_POSTPROCESSING=YES \
-            build
+            build 2>&1 | tee "$RUNNER_TEMP/xcodebuild.log"
           APP_PATH="$(find "$DERIVED_DATA_PATH/Build/Products" -maxdepth 2 -name '*.app' -type d | head -n 1)"
           if [ -z "$APP_PATH" ]; then
             echo "No .app bundle was produced." >&2
@@ -70,3 +70,13 @@ jobs:
           name: bili-pro-release-unsigned-ipa
           path: bili-pro-release-unsigned.ipa
           if-no-files-found: error
+
+      - name: Upload build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bili-pro-build-diagnostics
+          path: |
+            ${{ runner.temp }}/xcodebuild.log
+            ${{ runner.temp }}/DerivedData/Logs
+          if-no-files-found: warn
