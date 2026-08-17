@@ -3,6 +3,9 @@ import SwiftUI
 struct FollowingsView: View {
     let api: BiliAPIClient
     @State private var users: [FollowingUser] = []
+    @State private var tags: [FollowingTag] = []
+    @State private var selectedTagID: Int?
+    @State private var showingTagManager = false
     @State private var isLoading = true
     @State private var errorMessage: String?
 
@@ -15,7 +18,14 @@ struct FollowingsView: View {
             } else if users.isEmpty {
                 ContentUnavailableView("No followed users", systemImage: "person.2", description: Text("Followed creators will appear here."))
             } else {
-                List(users) { user in
+                List {
+                    if !tags.isEmpty {
+                        Picker("Group", selection: $selectedTagID) {
+                            Text("All groups").tag(Optional<Int>.none)
+                            ForEach(tags) { tag in Text(tag.name).tag(Optional(tag.tagID)) }
+                        }
+                    }
+                    ForEach(users) { user in
                     HStack(spacing: 12) {
                         AsyncImage(url: user.face.flatMap(URL.init(string:))) { phase in
                             switch phase {
@@ -33,11 +43,21 @@ struct FollowingsView: View {
                         if user.special == true { Image(systemName: "pin.fill").foregroundStyle(.secondary) }
                     }
                     .padding(.vertical, 4)
+                    }
                 }
                 .listStyle(.insetGrouped)
             }
         }
         .navigationTitle("Following")
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { showingTagManager = true } label: { Image(systemName: "folder.badge.gearshape") }
+            }
+        }
+        .sheet(isPresented: $showingTagManager) {
+            FollowingTagManagerView(api: api) { await load() }
+        }
+        .onChange(of: selectedTagID) { _, _ in Task { await loadUsers() } }
         .task { await load() }
         .refreshable { await load() }
     }
@@ -46,10 +66,59 @@ struct FollowingsView: View {
         isLoading = true
         errorMessage = nil
         do {
-            users = try await api.fetchFollowingUsers().list
+            tags = (try? await api.fetchFollowingTags()) ?? []
+            await loadUsers()
         } catch {
             errorMessage = error.localizedDescription
         }
         isLoading = false
+    }
+
+    private func loadUsers() async {
+        do { users = try await api.fetchFollowingUsers(tagID: selectedTagID).list }
+        catch { errorMessage = error.localizedDescription }
+    }
+}
+
+private struct FollowingTagManagerView: View {
+    let api: BiliAPIClient
+    let onChanged: () async -> Void
+    @Environment(\.dismiss) private var dismiss
+    @State private var tags: [FollowingTag] = []
+    @State private var newName = ""
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section("Create group") {
+                    HStack {
+                        TextField("Group name", text: $newName)
+                        Button("Add") { Task { await create() } }.disabled(newName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    }
+                }
+                Section("Groups") {
+                    ForEach(tags) { tag in
+                        HStack {
+                            Text(tag.name)
+                            Spacer()
+                            Text("\(tag.count ?? 0)").foregroundStyle(.secondary)
+                            Button { Task { try? await api.deleteFollowingTag(id: tag.tagID); await reload() } } label: { Image(systemName: "trash") }.tint(.red)
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Following Groups")
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() } } }
+            .task { await reload() }
+        }
+    }
+
+    private func reload() async { tags = (try? await api.fetchFollowingTags()) ?? []; await onChanged() }
+    private func create() async {
+        let name = newName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !name.isEmpty else { return }
+        try? await api.createFollowingTag(name: name)
+        newName = ""
+        await reload()
     }
 }

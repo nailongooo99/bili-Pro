@@ -2339,21 +2339,23 @@ nonisolated final class BiliAPIClient {
         throw BiliAPIError.missingSESSDATA
     }
 
-    func fetchFollowingUsers(page: Int = 1, pageSize: Int = 50) async throws -> FollowingPage {
+    func fetchFollowingUsers(page: Int = 1, pageSize: Int = 50, tagID: Int? = nil) async throws -> FollowingPage {
         let snapshot = await requestSnapshot()
         guard snapshot.isLoggedIn, let mid = snapshot.currentUserMID, mid > 0 else {
             throw BiliAPIError.missingSESSDATA
         }
+        var query = [
+            "vmid": String(mid),
+            "pn": String(max(1, page)),
+            "ps": String(min(max(1, pageSize), 50)),
+            "order": "attention",
+            "order_type": "attention"
+        ]
+        if let tagID { query["tagid"] = String(tagID) }
         let response: BiliResponse<FollowingPage> = try await get(
             base: baseURL,
             path: "/x/relation/followings",
-            query: [
-                "vmid": String(mid),
-                "pn": String(max(1, page)),
-                "ps": String(min(max(1, pageSize), 50)),
-                "order": "attention",
-                "order_type": "attention"
-            ],
+            query: query,
             referer: "https://space.bilibili.com/(mid)/fans/follow",
             userAgent: Self.webUserAgent,
             cookieHeader: snapshot.cookieHeader,
@@ -2362,6 +2364,41 @@ nonisolated final class BiliAPIClient {
         guard response.code == 0 else { throw BiliAPIError.api(code: response.code, message: response.displayMessage) }
         guard let payload = response.payload else { throw BiliAPIError.missingPayload }
         return payload
+    }
+
+    func fetchFollowingTags() async throws -> [FollowingTag] {
+        let snapshot = await requestSnapshot()
+        guard snapshot.isLoggedIn else { throw BiliAPIError.missingSESSDATA }
+        let response: BiliResponse<[FollowingTag]> = try await get(
+            base: baseURL,
+            path: "/x/relation/tags",
+            query: [:],
+            cookieHeader: snapshot.cookieHeader,
+            cachePolicy: .reloadIgnoringLocalCacheData
+        )
+        guard response.code == 0 else { throw BiliAPIError.api(code: response.code, message: response.displayMessage) }
+        return response.payload ?? []
+    }
+
+    func createFollowingTag(name: String) async throws {
+        try await mutateFollowingTag(path: "/x/relation/tag/create", fields: ["tag": name])
+    }
+
+    func renameFollowingTag(id: Int, name: String) async throws {
+        try await mutateFollowingTag(path: "/x/relation/tag/update", fields: ["tagid": String(id), "name": name])
+    }
+
+    func deleteFollowingTag(id: Int) async throws {
+        try await mutateFollowingTag(path: "/x/relation/tag/del", fields: ["tagid": String(id)])
+    }
+
+    private func mutateFollowingTag(path: String, fields: [String: String]) async throws {
+        let snapshot = await requestSnapshot()
+        guard snapshot.isLoggedIn, let csrf = snapshot.csrfToken else { throw BiliAPIError.missingSESSDATA }
+        var body = fields
+        body["csrf"] = csrf
+        let response: BiliResponse<EmptyBiliPayload> = try await postForm(base: baseURL, path: path, body: body)
+        guard response.code == 0 else { throw BiliAPIError.api(code: response.code, message: response.displayMessage) }
     }
 
     private func setUploaderFollowingWithWeb(mid: Int, following: Bool, csrf: String) async throws {

@@ -8127,3 +8127,16 @@ nonisolated struct FollowingPage: Codable, Sendable {
         case hasMore = "has_more"
     }
 }
+
+nonisolated struct FollowingTag: Codable, Hashable, Identifiable, Sendable {
+    let tagID: Int
+    let name: String
+    let count: Int?
+
+    var id: Int { tagID }
+
+    enum CodingKeys: String, CodingKey {
+        case tagID = "tagid"
+        case name, count
+    }
+}
