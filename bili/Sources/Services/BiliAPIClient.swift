@@ -6444,6 +6444,51 @@ nonisolated final class BiliAPIClient {
         guard response.code == 0 else { throw BiliAPIError.api(code: response.code, message: response.displayMessage) }
     }
 
+    func publishPollDynamic(content: String, title: String, options: [String]) async throws {
+        let normalizedOptions = options.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+        guard normalizedOptions.count >= 2 else { throw BiliAPIError.api(code: -1, message: "投票至少需要两个选项") }
+        let context = try await requireCSRFContext(for: .interaction)
+        let voteBase = URL(string: "https://api.vc.bilibili.com")!
+        var fields = [
+            "info[title]": title.trimmingCharacters(in: .whitespacesAndNewlines),
+            "info[desc]": "",
+            "info[type]": "0",
+            "info[choice_cnt]": "1",
+            "info[duration]": "604800",
+            "csrf": context.csrf
+        ]
+        for (index, option) in normalizedOptions.enumerated() {
+            fields["info[options][\(index)][desc]"] = option
+        }
+        let voteResponse: BiliResponse<DynamicVotePayload> = try await postMultipartFields(
+            base: voteBase,
+            path: "/vote_svr/v1/vote_svr/create_vote",
+            fields: fields,
+            referer: "https://t.bilibili.com/",
+            cookieHeader: context.snapshot.cookieHeader
+        )
+        guard voteResponse.code == 0, let voteID = voteResponse.payload?.voteID else {
+            throw BiliAPIError.api(code: voteResponse.code, message: voteResponse.displayMessage)
+        }
+        let dynRequest: [String: Any] = [
+            "content": ["contents": [["raw_text": content.trimmingCharacters(in: .whitespacesAndNewlines), "type": 1, "biz_id": ""]]],
+            "scene": 1,
+            "upload_id": "0_\(Int(Date().timeIntervalSince1970))",
+            "meta": ["app_meta": ["from": "create.dynamic.web", "mobi_app": "web"]],
+            "attach_card": ["type": "vote", "vote_id": String(voteID)]
+        ]
+        let requestData = try JSONSerialization.data(withJSONObject: dynRequest)
+        let response: BiliResponse<DynamicJSONValue> = try await postForm(
+            base: baseURL,
+            path: "/x/dynamic/feed/create/dyn",
+            body: ["dyn_req": String(decoding: requestData, as: UTF8.self), "platform": "web", "csrf": context.csrf],
+            referer: "https://t.bilibili.com/",
+            cookieHeader: context.snapshot.cookieHeader,
+            retryPolicy: .idempotentMutation
+        )
+        guard response.code == 0 else { throw BiliAPIError.api(code: response.code, message: response.displayMessage) }
+    }
+
     func repostDynamic(id: String, content: String) async throws {
         let context = try await requireCSRFContext(for: .interaction)
         let requestObject: [String: Any] = [
@@ -7493,6 +7538,28 @@ nonisolated final class BiliAPIClient {
         let (data, _) = try await data(for: request, priority: .userInitiated, retryPolicy: .api)
         guard !data.isEmpty else { throw BiliAPIError.emptyData }
         return data
+    }
+
+    private func postMultipartFields<T: Decodable>(
+        base: URL,
+        path: String,
+        fields: [String: String],
+        referer: String,
+        cookieHeader: String
+    ) async throws -> T {
+        let boundary = "BiliProFieldsBoundary\(UUID().uuidString.replacingOccurrences(of: "-", with: ""))"
+        var body = Data()
+        for (name, value) in fields.sorted(by: { $0.key < $1.key }) {
+            body.append(contentsOf: "--\(boundary)\r\nContent-Disposition: form-data; name=\"\(name)\"\r\n\r\n\(value)\r\n".utf8)
+        }
+        body.append(contentsOf: "--\(boundary)--\r\n".utf8)
+        var request = try await makeRequest(base: base, path: path, query: [:], referer: referer, cookieHeader: cookieHeader)
+        request.httpMethod = "POST"
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        request.httpBody = body
+        let (data, _) = try await data(for: request, priority: .userInitiated, retryPolicy: .api)
+        guard !data.isEmpty else { throw BiliAPIError.emptyData }
+        return try await Self.decode(data, priority: .userInitiated)
     }
 
     private func postSignedAppForm<T: Decodable>(

@@ -4293,6 +4293,14 @@ nonisolated private struct DynamicCodingKey: CodingKey {
     }
 }
 
+nonisolated struct DynamicVotePayload: Decodable, Sendable {
+    let voteID: Int?
+
+    enum CodingKeys: String, CodingKey {
+        case voteID = "vote_id"
+    }
+}
+
 nonisolated enum DynamicJSONValue: Codable, Hashable {
     case string(String)
     case number(String)

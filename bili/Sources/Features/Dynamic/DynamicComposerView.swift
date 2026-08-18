@@ -9,6 +9,9 @@ struct DynamicComposerView: View {
     @State private var content = ""
     @State private var selectedPhoto: PhotosPickerItem?
     @State private var imageData: Data?
+    @State private var isPoll = false
+    @State private var pollTitle = ""
+    @State private var pollOptions = ["", ""]
     @State private var isPublishing = false
     @State private var errorMessage: String?
 
@@ -42,6 +45,20 @@ struct DynamicComposerView: View {
                         .frame(maxHeight: 180)
                         .clipShape(RoundedRectangle(cornerRadius: 14))
                 }
+                Toggle("Add seven-day poll", isOn: $isPoll)
+                if isPoll {
+                    TextField("Poll title", text: $pollTitle)
+                    ForEach(pollOptions.indices, id: \.self) { index in
+                        HStack {
+                            TextField("Option \(index + 1)", text: $pollOptions[index])
+                            if pollOptions.count > 2 {
+                                Button { pollOptions.remove(at: index) } label: { Image(systemName: "minus.circle") }
+                            }
+                        }
+                    }
+                    Button("Add option") { pollOptions.append("") }
+                        .font(.caption)
+                }
                 Spacer()
             }
             .padding()
@@ -52,7 +69,7 @@ struct DynamicComposerView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Publish") { Task { await publish() } }
-                        .disabled(isPublishing || (content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && imageData == nil))
+                        .disabled(isPublishing || (content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && imageData == nil && !isPoll))
                 }
             }
             .overlay { if isPublishing { ProgressView() } }
@@ -74,7 +91,9 @@ struct DynamicComposerView: View {
         isPublishing = true
         defer { isPublishing = false }
         do {
-            if let imageData {
+            if isPoll {
+                try await api.publishPollDynamic(content: content, title: pollTitle, options: pollOptions)
+            } else if let imageData {
                 try await api.publishImageDynamic(content, imageData: imageData)
             } else {
                 try await api.publishTextDynamic(content)
