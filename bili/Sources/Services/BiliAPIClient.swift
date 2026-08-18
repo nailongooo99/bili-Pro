@@ -6391,6 +6391,48 @@ nonisolated final class BiliAPIClient {
         }
     }
 
+    func publishImageDynamic(_ content: String, imageData: Data) async throws {
+        let context = try await requireCSRFContext(for: .interaction)
+        let uploadData = try await postMultipartRaw(
+            base: baseURL,
+            path: "/x/dynamic/feed/draw/upload_bfs",
+            fields: ["biz": "dynamic", "csrf": context.csrf],
+            fileField: "file_up",
+            fileName: "dynamic.jpg",
+            mimeType: "image/jpeg",
+            fileData: imageData,
+            referer: "https://t.bilibili.com/",
+            cookieHeader: context.snapshot.cookieHeader
+        )
+        guard let uploadObject = try JSONSerialization.jsonObject(with: uploadData) as? [String: Any],
+              let payload = uploadObject["data"] as? [String: Any],
+              let urlString = (payload["image_url"] as? String) ?? (payload["url"] as? String),
+              !urlString.isEmpty else {
+            throw BiliAPIError.missingPayload
+        }
+        let width = (payload["image_width"] as? NSNumber)?.intValue ?? (payload["width"] as? NSNumber)?.intValue ?? 0
+        let height = (payload["image_height"] as? NSNumber)?.intValue ?? (payload["height"] as? NSNumber)?.intValue ?? 0
+        let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
+        let dynRequest: [String: Any] = [
+            "content": ["contents": trimmed.isEmpty ? [] : [["raw_text": trimmed, "type": 1, "biz_id": ""]]],
+            "scene": 1,
+            "upload_id": "0_\(Int(Date().timeIntervalSince1970))",
+            "meta": ["app_meta": ["from": "create.dynamic.web", "mobi_app": "web"]],
+            "pictures": [["img_src": urlString, "img_width": width, "img_height": height]]
+        ]
+        let requestData = try JSONSerialization.data(withJSONObject: dynRequest)
+        let requestJSON = String(decoding: requestData, as: UTF8.self)
+        let response: BiliResponse<DynamicJSONValue> = try await postForm(
+            base: baseURL,
+            path: "/x/dynamic/feed/create/dyn",
+            body: ["dyn_req": requestJSON, "platform": "web", "csrf": context.csrf],
+            referer: "https://t.bilibili.com/",
+            cookieHeader: context.snapshot.cookieHeader,
+            retryPolicy: .idempotentMutation
+        )
+        guard response.code == 0 else { throw BiliAPIError.api(code: response.code, message: response.displayMessage) }
+    }
+
     func repostDynamic(id: String, content: String) async throws {
         let context = try await requireCSRFContext(for: .interaction)
         let requestObject: [String: Any] = [
@@ -7411,6 +7453,35 @@ nonisolated final class BiliAPIClient {
         )
         guard !data.isEmpty else { throw BiliAPIError.emptyData }
         return try await Self.decode(data, priority: .userInitiated)
+    }
+
+    private func postMultipartRaw(
+        base: URL,
+        path: String,
+        fields: [String: String],
+        fileField: String,
+        fileName: String,
+        mimeType: String,
+        fileData: Data,
+        referer: String,
+        cookieHeader: String
+    ) async throws -> Data {
+        let boundary = "BiliProBoundary\(UUID().uuidString.replacingOccurrences(of: "-", with: ""))"
+        var body = Data()
+        for (name, value) in fields.sorted(by: { $0.key < $1.key }) {
+            body.append(contentsOf: "--\(boundary)\r\nContent-Disposition: form-data; name=\"\(name)\"\r\n\r\n\(value)\r\n".utf8)
+        }
+        body.append(contentsOf: "--\(boundary)\r\nContent-Disposition: form-data; name=\"\(fileField)\"; filename=\"\(fileName)\"\r\nContent-Type: \(mimeType)\r\n\r\n".utf8)
+        body.append(fileData)
+        body.append(contentsOf: "\r\n--\(boundary)--\r\n".utf8)
+        var request = try await makeRequest(base: base, path: path, query: [:], referer: referer, cookieHeader: cookieHeader)
+        request.httpMethod = "POST"
+        request.timeoutInterval = 45
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        request.httpBody = body
+        let (data, _) = try await data(for: request, priority: .userInitiated, retryPolicy: .api)
+        guard !data.isEmpty else { throw BiliAPIError.emptyData }
+        return data
     }
 
     private func postSignedAppForm<T: Decodable>(
