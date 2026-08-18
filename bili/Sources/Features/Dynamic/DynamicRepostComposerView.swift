@@ -29,7 +29,7 @@ struct DynamicRepostComposerView: View {
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                     ToolbarItem(placement: .confirmationAction) {
-                        Button("Repost") { Task { await submit() } }
+                        Button("Repost") { Task { @MainActor in await submit() } }
                             .disabled(isSubmitting)
                     }
                 }

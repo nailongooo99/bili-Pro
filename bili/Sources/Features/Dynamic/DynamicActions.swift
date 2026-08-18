@@ -52,7 +52,7 @@ struct DynamicFeedActionBar: View {
                     systemImage: isLiked ? "hand.thumbsup.fill" : "hand.thumbsup",
                     isSelected: isLiked
                 ) {
-                    Task { await toggleLike() }
+                    Task { @MainActor in await toggleLike() }
                 }
                 .frame(maxWidth: .infinity)
             }
