@@ -39,7 +39,7 @@ jobs:
           set -euo pipefail
           DERIVED_DATA_PATH="$RUNNER_TEMP/DerivedData"
           BUILD_DIR="$RUNNER_TEMP/build"
-          xcodebuild \
+          if ! xcodebuild \
             -project bili.xcodeproj \
             -scheme bili \
             -configuration Release \
@@ -54,7 +54,11 @@ jobs:
             COPY_PHASE_STRIP=YES \
             STRIP_INSTALLED_PRODUCT=YES \
             DEPLOYMENT_POSTPROCESSING=YES \
-            build 2>&1 | tee "$RUNNER_TEMP/xcodebuild.log"
+            build 2>&1 | tee "$RUNNER_TEMP/xcodebuild.log"; then
+            echo "--- Last Xcode build diagnostics ---" >&2
+            tail -n 250 "$RUNNER_TEMP/xcodebuild.log" >&2 || true
+            exit 1
+          fi
           APP_PATH="$(find "$DERIVED_DATA_PATH/Build/Products" -maxdepth 2 -name '*.app' -type d | head -n 1)"
           if [ -z "$APP_PATH" ]; then
             echo "No .app bundle was produced." >&2
