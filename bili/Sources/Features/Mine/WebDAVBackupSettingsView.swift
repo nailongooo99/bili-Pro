@@ -3,6 +3,7 @@ import SwiftUI
 struct WebDAVBackupSettingsView: View {
     @State private var endpoint = UserDefaults.standard.string(forKey: "bili-Pro.webdav.endpoint") ?? ""
     @State private var username = UserDefaults.standard.string(forKey: "bili-Pro.webdav.username") ?? ""
+    @State private var remotePath = UserDefaults.standard.string(forKey: "bili-Pro.webdav.remotePath") ?? "bili-Pro-backup.json"
     @State private var password = ""
     @State private var status: String?
     @State private var isWorking = false
@@ -19,6 +20,8 @@ struct WebDAVBackupSettingsView: View {
                 TextField("Username", text: $username)
                     .textInputAutocapitalization(.never)
                 SecureField("Password", text: $password)
+                TextField("Remote file path", text: $remotePath)
+                    .textInputAutocapitalization(.never)
             } header: {
                 Text("Connection")
             } footer: {
@@ -57,7 +60,7 @@ struct WebDAVBackupSettingsView: View {
 
     private func configuration() -> WebDAVConfiguration? {
         guard let url = URL(string: endpoint), !username.isEmpty else { return nil }
-        return WebDAVConfiguration(baseURL: url, username: username)
+        return WebDAVConfiguration(baseURL: url, username: username, remotePath: remotePath)
     }
 
     private func saveAndTest() async {
@@ -68,6 +71,7 @@ struct WebDAVBackupSettingsView: View {
             try await service.savePassword(password, for: configuration)
             UserDefaults.standard.set(endpoint, forKey: "bili-Pro.webdav.endpoint")
             UserDefaults.standard.set(username, forKey: "bili-Pro.webdav.username")
+            UserDefaults.standard.set(remotePath, forKey: "bili-Pro.webdav.remotePath")
             try await service.testConnection(configuration: configuration)
             status = "Connection succeeded"
         } catch { status = error.localizedDescription }
