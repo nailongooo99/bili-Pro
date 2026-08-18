@@ -20,7 +20,7 @@ This document records the feature gap between the current SwiftUI base and the i
 ### P0: download and backup foundations
 
 - Background-aware download task model with pause/resume/retry states
-- Video/audio stream selection and local muxing boundary
+- Video/audio stream selection and local muxing into a playable local MP4
 - Download library and offline playback route
 - WebDAV backup/restore for settings, account metadata and download manifests
 - Secure credential storage for WebDAV; never persist passwords in UserDefaults
@@ -29,6 +29,7 @@ This document records the feature gap between the current SwiftUI base and the i
 
 - DLNA discovery, renderer selection and playback handoff
 - Follow groups and follow-list filtering
+- Watch-later list, video-detail save action, and swipe-to-remove management
 - Dynamic publishing, repost, vote and reserve flows
 - More complete message/reply notification sections
 
@@ -36,7 +37,7 @@ This document records the feature gap between the current SwiftUI base and the i
 
 - Article and audio browsing
 - Rank, popular series and precious popular pages
-- History search and later/watch-later management
+- History search (watch-later management is implemented)
 - Expanded PGC review and season browsing
 
 ## Implementation rules
