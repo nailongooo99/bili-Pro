@@ -88,11 +88,14 @@ final class OfflineDownloadManager: ObservableObject {
             do {
                 try FileManager.default.createDirectory(at: item.directoryURL, withIntermediateDirectories: true)
                 let videoDestination = item.directoryURL.appendingPathComponent("video.mp4")
-                let (videoTemporaryURL, _) = try await session.download(from: item.videoURL ?? URL(fileURLWithPath: ""))
+                guard let videoURL = item.videoURL else { throw OfflineDownloadError.missingVideoURL }
+                let videoTemporaryURL = item.directoryURL.appendingPathComponent("video.download")
+                try await streamDownload(videoURL, to: videoTemporaryURL, id: item.id, baseProgress: 0, weight: item.audioURL == nil ? 1 : 0.8)
                 try replace(videoTemporaryURL, with: videoDestination)
                 if let audioURL = item.audioURL {
                     let audioDestination = item.directoryURL.appendingPathComponent("audio.m4a")
-                    let (audioTemporaryURL, _) = try await session.download(from: audioURL)
+                    let audioTemporaryURL = item.directoryURL.appendingPathComponent("audio.download")
+                    try await streamDownload(audioURL, to: audioTemporaryURL, id: item.id, baseProgress: 0.8, weight: 0.2)
                     try replace(audioTemporaryURL, with: audioDestination)
                     try await mux(videoURL: videoDestination, audioURL: audioDestination, outputURL: videoDestination)
                     try? FileManager.default.removeItem(at: audioDestination)
@@ -126,6 +129,35 @@ final class OfflineDownloadManager: ObservableObject {
         try FileManager.default.moveItem(at: source, to: destination)
     }
 
+    private func streamDownload(_ url: URL, to destination: URL, id: UUID, baseProgress: Double, weight: Double) async throws {
+        try? FileManager.default.removeItem(at: destination)
+        FileManager.default.createFile(atPath: destination.path, contents: nil)
+        let handle = try FileHandle(forWritingTo: destination)
+        defer { try? handle.close() }
+        let (bytes, response) = try await session.bytes(from: url)
+        let expected = response.expectedContentLength > 0 ? Double(response.expectedContentLength) : nil
+        var received = 0
+        var buffer = Data()
+        buffer.reserveCapacity(64 * 1024)
+        for try await byte in bytes {
+            try Task.checkCancellation()
+            buffer.append(byte)
+            received += 1
+            if buffer.count >= 64 * 1024 {
+                try handle.write(contentsOf: buffer)
+                buffer.removeAll(keepingCapacity: true)
+            }
+            if received % (256 * 1024) == 0, let expected {
+                let progress = baseProgress + min(1, Double(received) / expected) * weight
+                _ = try? await store.update(id: id) { $0.progress = progress }
+                await refresh()
+            }
+        }
+        if !buffer.isEmpty { try handle.write(contentsOf: buffer) }
+        _ = try? await store.update(id: id) { $0.progress = baseProgress + weight }
+        await refresh()
+    }
+
     private func mux(videoURL: URL, audioURL: URL, outputURL: URL) async throws {
         let videoAsset = AVURLAsset(url: videoURL)
         let audioAsset = AVURLAsset(url: audioURL)
@@ -155,11 +187,13 @@ final class OfflineDownloadManager: ObservableObject {
 }
 
 private enum OfflineDownloadError: LocalizedError {
+    case missingVideoURL
     case missingMediaTrack
     case exportUnavailable
 
     var errorDescription: String? {
         switch self {
+        case .missingVideoURL: return "The download did not contain a video URL."
         case .missingMediaTrack: return "The downloaded media did not contain compatible audio and video tracks."
         case .exportUnavailable: return "The device could not create a local media export session."
         }
