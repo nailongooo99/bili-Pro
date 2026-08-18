@@ -2,8 +2,6 @@ import SwiftUI
 
 struct DynamicFeedCardTextSection: View {
     let display: DynamicFeedCardDisplayModel
-    let api: BiliAPIClient
-    let dynamicID: String
     let preferredWidth: CGFloat?
     @Binding var isTextExpanded: Bool
 
@@ -25,6 +23,8 @@ struct DynamicFeedCardActionSection: View {
     let item: DynamicFeedItem
     let display: DynamicFeedCardDisplayModel
     let onShowComments: () -> Void
+    let api: BiliAPIClient
+    let dynamicID: String
 
     var body: some View {
         DynamicFeedActionBar(
