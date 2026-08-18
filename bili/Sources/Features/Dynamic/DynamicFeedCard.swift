@@ -27,9 +27,9 @@ struct DynamicFeedCard: View {
                     video: video,
                     display: display,
                     initialIsLiked: item.isLiked,
-                    onShowComments: showComments,
                     api: api,
-                    dynamicID: item.idStr
+                    dynamicID: item.idStr,
+                    onShowComments: showComments
                 )
             } else if display.usesSeparatedDynamicLayout {
                 DynamicSeparatedFeedCardContent(
