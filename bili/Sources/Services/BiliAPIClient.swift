@@ -1115,6 +1115,17 @@ nonisolated final class BiliAPIClient {
         }
     }
 
+    func fetchRankingVideos() async throws -> [VideoItem] {
+        let response: BiliResponse<BiliPage<VideoItem>> = try await get(
+            base: baseURL,
+            path: "/x/web-interface/ranking/v2",
+            query: ["rid": "0", "type": "all"],
+            responseCachePolicy: .brief
+        )
+        guard response.code == 0 else { throw BiliAPIError.api(code: response.code, message: response.displayMessage) }
+        return response.payload?.list ?? []
+    }
+
     func fetchVideoDetail(bvid: String, bypassesCache: Bool = false) async throws -> VideoItem {
         let snapshot = await requestSnapshot()
         if bypassesCache {

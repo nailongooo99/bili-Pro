@@ -46,6 +46,8 @@ struct RootMineNavigationDestination: View {
                 DLNADevicesView()
             case .followings:
                 FollowingsView(api: api)
+            case .ranking:
+                RankingView(api: api)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

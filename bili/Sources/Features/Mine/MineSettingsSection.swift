@@ -14,6 +14,12 @@ struct MineSettingsSection: View {
             }
 
             MineOverlayNavigationButton {
+                onOpenRoute(.ranking)
+            } label: {
+                Label("排行榜", systemImage: "chart.bar.xaxis")
+            }
+
+            MineOverlayNavigationButton {
                 onOpenRoute(.interfaceSettings)
             } label: {
                 SettingsNavigationRow(
