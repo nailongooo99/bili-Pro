@@ -37,7 +37,7 @@ This document records the feature gap between the current SwiftUI base and the i
 ### P2: content breadth
 
 - Article and audio browsing
-- Rank, popular series and precious popular pages
+- Ranking page (official ranking API and Mine route); popular series and precious popular pages remain
 - History search (watch-later management is implemented)
 - Expanded PGC review and season browsing
 
