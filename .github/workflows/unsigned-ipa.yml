@@ -20,7 +20,7 @@ jobs:
         run: |
           set -euo pipefail
           ls -1 /Applications | grep -E '^Xcode' || true
-          XCODE_APP="$(find /Applications -maxdepth 1 -type d -name 'Xcode*.app' -print | sort -V | tail -n 1)"
+          XCODE_APP="$(find /Applications -type d -name 'Xcode*.app' -prune -print | sort -V | tail -n 1)"
           if [ -z "$XCODE_APP" ]; then
             echo "No Xcode.app was found on the runner." >&2
             exit 1
