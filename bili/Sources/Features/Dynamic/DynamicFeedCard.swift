@@ -27,6 +27,8 @@ struct DynamicFeedCard: View {
                     video: video,
                     display: display,
                     initialIsLiked: item.isLiked,
+                    api: api,
+                    dynamicID: item.idStr,
                     onShowComments: showComments
                 )
             } else if display.usesSeparatedDynamicLayout {
@@ -35,6 +37,8 @@ struct DynamicFeedCard: View {
                     display: display,
                     contentWidth: contentWidth,
                     isTextExpanded: $isTextExpanded,
+                    api: api,
+                    dynamicID: item.idStr,
                     onShowComments: showComments
                 )
             } else {
@@ -43,6 +47,8 @@ struct DynamicFeedCard: View {
                     display: display,
                     contentWidth: contentWidth,
                     isTextExpanded: $isTextExpanded,
+                    api: api,
+                    dynamicID: item.idStr,
                     onShowComments: showComments
                 )
             }

@@ -6391,6 +6391,22 @@ nonisolated final class BiliAPIClient {
         }
     }
 
+    func repostDynamic(id: String, content: String) async throws {
+        let snapshot = await requestSnapshot()
+        guard snapshot.isLoggedIn, let csrf = snapshot.csrfToken else { throw BiliAPIError.missingSESSDATA }
+        let response: BiliResponse<EmptyBiliPayload> = try await postForm(
+            base: baseURL,
+            path: "/x/dynamic/feed/create/dyn",
+            body: [
+                "type": "8",
+                "rid": id,
+                "content": content,
+                "csrf": csrf
+            ]
+        )
+        guard response.code == 0 else { throw BiliAPIError.api(code: response.code, message: response.displayMessage) }
+    }
+
     private func requestUploaderDynamicFeed(
         mid: Int,
         offset: String?,

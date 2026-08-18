@@ -4,6 +4,8 @@ struct DynamicHomeVideoFeedCard: View {
     let video: VideoItem
     let display: DynamicFeedCardDisplayModel
     let initialIsLiked: Bool
+    let api: BiliAPIClient
+    let dynamicID: String
     let onShowComments: () -> Void
 
     var body: some View {
@@ -33,6 +35,8 @@ struct DynamicHomeVideoFeedCard: View {
                 display: display,
                 initialIsLiked: initialIsLiked,
                 initialLikeCount: display.initialLikeCount,
+                api: api,
+                dynamicID: dynamicID,
                 onShowComments: onShowComments
             )
         }

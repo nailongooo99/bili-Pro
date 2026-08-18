@@ -6,6 +6,8 @@ struct DynamicStandardFeedCardContent: View {
     let contentWidth: CGFloat?
     @Binding var isTextExpanded: Bool
     let onShowComments: () -> Void
+    let api: BiliAPIClient
+    let dynamicID: String
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -62,6 +64,8 @@ struct DynamicStandardFeedCardContent: View {
             DynamicFeedCardActionSection(
                 item: item,
                 display: display,
+                api: api,
+                dynamicID: dynamicID,
                 onShowComments: onShowComments
             )
         }

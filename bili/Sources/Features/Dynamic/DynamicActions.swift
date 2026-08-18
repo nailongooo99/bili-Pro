@@ -5,10 +5,13 @@ struct DynamicFeedActionBar: View {
     let initialIsLiked: Bool
     let initialLikeCount: Int
     let onShowComments: () -> Void
+    let api: BiliAPIClient
+    let dynamicID: String
     @State private var isLiked: Bool
     @State private var likeCount: Int
     @State private var actionMessage: String?
     @State private var actionMessageTask: Task<Void, Never>?
+    @State private var showingRepostComposer = false
 
     init(
         display: DynamicFeedCardDisplayModel,
@@ -27,7 +30,7 @@ struct DynamicFeedActionBar: View {
     var body: some View {
         GlassEffectContainer(spacing: 8) {
             HStack(spacing: 8) {
-                shareActionPill
+                repostActionPill
                     .frame(maxWidth: .infinity)
 
                 DynamicActionPill(
@@ -66,6 +69,19 @@ struct DynamicFeedActionBar: View {
             actionMessageTask?.cancel()
             actionMessageTask = nil
         }
+        .sheet(isPresented: $showingRepostComposer) {
+            DynamicRepostComposerView(api: api, dynamicID: dynamicID) {
+                showActionMessage("Reposted")
+            }
+        }
+    }
+
+    private var repostActionPill: some View {
+        DynamicActionPill(title: display.repostTitle, systemImage: "arrowshape.turn.up.right", isSelected: false) {
+            playActionFeedback()
+            showingRepostComposer = true
+        }
+        .frame(maxWidth: .infinity)
     }
 
     @ViewBuilder

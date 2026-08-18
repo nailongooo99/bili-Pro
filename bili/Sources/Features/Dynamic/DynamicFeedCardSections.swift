@@ -2,6 +2,8 @@ import SwiftUI
 
 struct DynamicFeedCardTextSection: View {
     let display: DynamicFeedCardDisplayModel
+    let api: BiliAPIClient
+    let dynamicID: String
     let preferredWidth: CGFloat?
     @Binding var isTextExpanded: Bool
 
@@ -29,6 +31,8 @@ struct DynamicFeedCardActionSection: View {
             display: display,
             initialIsLiked: item.isLiked,
             initialLikeCount: display.initialLikeCount,
+            api: api,
+            dynamicID: dynamicID,
             onShowComments: onShowComments
         )
     }
