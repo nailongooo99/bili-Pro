@@ -25,7 +25,7 @@ struct RankingView: View {
                                     .font(.headline.monospacedDigit())
                                     .foregroundStyle(index < 3 ? .orange : .secondary)
                                     .frame(width: 28)
-                                AsyncImage(url: video.cover.flatMap(URL.init(string:))) { phase in
+                                AsyncImage(url: video.pic.flatMap(URL.init(string:))) { phase in
                                     if case .success(let image) = phase {
                                         image.resizable().scaledToFill()
                                     } else {
