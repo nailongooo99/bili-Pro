@@ -1,32 +1,4 @@
 import UIKit
-import BackgroundTasks
-
-enum OfflineDownloadBackgroundTask {
-    static let identifier = "com.bili-pro.offline-downloads"
-
-    static func register() {
-        BGTaskScheduler.shared.register(forTaskWithIdentifier: identifier, using: nil) { task in
-            guard let task = task as? BGProcessingTask else {
-                task.setTaskCompleted(success: false)
-                return
-            }
-            let manager = OfflineDownloadManager()
-            let work = Task { @MainActor in
-                await manager.resumePendingDownloads()
-                task.setTaskCompleted(success: true)
-            }
-            task.expirationHandler = { work.cancel() }
-        }
-    }
-
-    static func schedule() {
-        let request = BGProcessingTaskRequest(identifier: identifier)
-        request.requiresNetworkConnectivity = true
-        request.requiresExternalPower = false
-        request.earliestBeginDate = Date(timeIntervalSinceNow: 15 * 60)
-        try? BGTaskScheduler.shared.submit(request)
-    }
-}
 
 @MainActor
 enum AppOrientationLock {
@@ -102,7 +74,6 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         willFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
-        OfflineDownloadBackgroundTask.register()
         UIWindow.appearance().backgroundColor = LaunchAppearance.backgroundColor
         return true
     }
@@ -123,7 +94,6 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
 
     func applicationDidEnterBackground(_ application: UIApplication) {
         ActivePlaybackCoordinator.shared.pauseActivePlaybackForAppBackground()
-        OfflineDownloadBackgroundTask.schedule()
     }
 
     func applicationProtectedDataWillBecomeUnavailable(_ application: UIApplication) {

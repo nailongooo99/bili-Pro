@@ -19,7 +19,7 @@ This document records the feature gap between the current SwiftUI base and the i
 
 ### P0: download and backup foundations
 
-- Background-aware download task model with pause/resume/retry states (system BGProcessing wake-up and queue rehydration)
+- Background-aware download task model with pause/resume/retry states and queue rehydration
 - Video/audio stream selection and local muxing into a playable local MP4
 - Download library and offline playback route
 - WebDAV backup/restore for settings, account metadata and download manifests
