@@ -30,7 +30,8 @@ This document records the feature gap between the current SwiftUI base and the i
 - DLNA discovery, renderer selection and playback handoff
 - Follow groups and follow-list filtering
 - Watch-later list, video-detail save action, and swipe-to-remove management
-- Dynamic publishing, repost, vote and reserve flows
+- Dynamic text publishing, repost, and like synchronization
+- Dynamic image/video publishing, vote and reserve flows
 - More complete message/reply notification sections
 
 ### P2: content breadth

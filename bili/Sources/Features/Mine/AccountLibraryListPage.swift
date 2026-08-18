@@ -4,6 +4,7 @@ struct AccountLibraryListPage: View {
     let kind: AccountLibraryKind
     @ObservedObject var viewModel: MineViewModel
     @EnvironmentObject private var sessionStore: SessionStore
+    @State private var searchText = ""
 
     var body: some View {
         List {
@@ -23,6 +24,8 @@ struct AccountLibraryListPage: View {
                 .disabled(!sessionStore.isLoggedIn || state.isLoading)
             }
         }
+        .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: kind == .history ? .always : .automatic), prompt: "Search history")
+        .onChange(of: kind) { _, _ in searchText = "" }
         .task {
             await loadIfNeeded()
         }
@@ -100,14 +103,18 @@ struct AccountLibraryListPage: View {
     }
 
     private var items: [AccountVideoEntry] {
+        let source: [AccountVideoEntry]
         switch kind {
         case .history:
-            return viewModel.accountHistory
+            source = viewModel.accountHistory
         case .watchLater:
-            return viewModel.watchLater
+            source = viewModel.watchLater
         case .favorites:
-            return viewModel.accountFavorites
+            source = viewModel.accountFavorites
         }
+        guard kind == .history, !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return source }
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        return source.filter { $0.title.localizedCaseInsensitiveContains(query) }
     }
 
     private var state: LoadingState {
