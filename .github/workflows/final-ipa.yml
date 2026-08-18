@@ -1,0 +1,74 @@
+name: Final unsigned IPA
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: final-unsigned-ipa
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Final unsigned IPA
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: |
+          set -euo pipefail
+          XCODE_APP="$(find /Applications -type d -name 'Xcode*.app' -prune -print | sort | tail -n 1)"
+          test -n "$XCODE_APP"
+          sudo xcode-select -s "$XCODE_APP"
+          xcodebuild -version
+
+      - name: Build Release app without signing
+        run: |
+          set -euo pipefail
+          DERIVED_DATA_PATH="$RUNNER_TEMP/DerivedData"
+          BUILD_DIR="$RUNNER_TEMP/build"
+          xcodebuild \
+            -project bili.xcodeproj \
+            -scheme bili \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$DERIVED_DATA_PATH" \
+            -skipPackagePluginValidation \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            COPY_PHASE_STRIP=YES \
+            STRIP_INSTALLED_PRODUCT=YES \
+            DEPLOYMENT_POSTPROCESSING=YES \
+            build 2>&1 | tee "$RUNNER_TEMP/xcodebuild.log"
+          APP_PATH="$(find "$DERIVED_DATA_PATH/Build/Products" -maxdepth 2 -name '*.app' -type d | head -n 1)"
+          test -n "$APP_PATH"
+          mkdir -p "$BUILD_DIR/Payload"
+          cp -R "$APP_PATH" "$BUILD_DIR/Payload/"
+          (cd "$BUILD_DIR" && zip -qry "$GITHUB_WORKSPACE/bili-pro-release-unsigned.ipa" Payload)
+
+      - name: Generate IPA checksum
+        run: shasum -a 256 bili-pro-release-unsigned.ipa | tee bili-pro-release-unsigned.ipa.sha256
+
+      - name: Upload unsigned IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: bili-pro-final-release-unsigned-ipa
+          path: |
+            bili-pro-release-unsigned.ipa
+            bili-pro-release-unsigned.ipa.sha256
+          if-no-files-found: error
+
+      - name: Upload build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bili-pro-final-build-diagnostics
+          path: |
+            ${{ runner.temp }}/xcodebuild.log
+            ${{ runner.temp }}/DerivedData/Logs
+          if-no-files-found: warn
