@@ -72,7 +72,7 @@ private struct SearchAudioRouteRow: View {
     let audio: SearchAudioItem
 
     var body: some View {
-        let url = URL(string: "https://www.bilibili.com/audio/au\(audio.id)")
+        let url = URL(string: "https://www.bilibili.com/audio/au\(audio.id)")!
         AppLinkButton(url: url) {
             HStack(alignment: .top, spacing: 10) {
                 SearchPosterCover(
