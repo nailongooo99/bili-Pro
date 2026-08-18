@@ -22,7 +22,7 @@ This document records the feature gap between the current SwiftUI base and the i
 - Background-aware download task model with pause/resume/retry states and queue rehydration
 - Video/audio stream selection and local muxing into a playable local MP4
 - Download library and offline playback route
-- WebDAV backup/restore for settings, account metadata and download manifests
+- WebDAV backup/restore for safe app settings and download manifests (credentials/tokens remain local Keychain data)
 - Secure credential storage for WebDAV; never persist passwords in UserDefaults
 
 ### P1: device and social expansion
