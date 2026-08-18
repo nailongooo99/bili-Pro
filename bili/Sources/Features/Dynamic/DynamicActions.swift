@@ -48,7 +48,7 @@ struct DynamicFeedActionBar: View {
                     systemImage: isLiked ? "hand.thumbsup.fill" : "hand.thumbsup",
                     isSelected: isLiked
                 ) {
-                    toggleLocalLike()
+                    Task { await toggleLike() }
                 }
                 .frame(maxWidth: .infinity)
             }
@@ -115,12 +115,22 @@ struct DynamicFeedActionBar: View {
         }
     }
 
-    private func toggleLocalLike() {
+    private func toggleLike() async {
         playActionFeedback()
         let nextIsLiked = !isLiked
         withAnimation(.snappy(duration: 0.2)) {
             isLiked = nextIsLiked
             likeCount = max(0, likeCount + (nextIsLiked ? 1 : -1))
+        }
+        do {
+            try await api.setDynamicLike(id: dynamicID, liked: nextIsLiked)
+            showActionMessage(nextIsLiked ? "Liked" : "Unliked", playsFeedback: false)
+        } catch {
+            withAnimation(.snappy(duration: 0.2)) {
+                isLiked = !nextIsLiked
+                likeCount = max(0, likeCount + (nextIsLiked ? -1 : 1))
+            }
+            showActionMessage(error.localizedDescription, playsFeedback: false)
         }
         showActionMessage(nextIsLiked ? "已点赞" : "已取消点赞", playsFeedback: false)
     }

@@ -6407,6 +6407,17 @@ nonisolated final class BiliAPIClient {
         guard response.code == 0 else { throw BiliAPIError.api(code: response.code, message: response.displayMessage) }
     }
 
+    func setDynamicLike(id: String, liked: Bool) async throws {
+        let snapshot = await requestSnapshot()
+        guard snapshot.isLoggedIn, let csrf = snapshot.csrfToken else { throw BiliAPIError.missingSESSDATA }
+        let response: BiliResponse<EmptyBiliPayload> = try await postForm(
+            base: baseURL,
+            path: "/x/dynamic/feed/like",
+            body: ["dynamic_id": id, "up": liked ? "1" : "0", "csrf": csrf]
+        )
+        guard response.code == 0 else { throw BiliAPIError.api(code: response.code, message: response.displayMessage) }
+    }
+
     private func requestUploaderDynamicFeed(
         mid: Int,
         offset: String?,
