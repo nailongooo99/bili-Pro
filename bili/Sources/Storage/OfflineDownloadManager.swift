@@ -19,6 +19,15 @@ final class OfflineDownloadManager: ObservableObject {
         items = await store.allItems()
     }
 
+    /// Rehydrates unfinished downloads after a process or background-task restart.
+    /// This intentionally only resumes queued/downloading items; paused items remain
+    /// user-controlled and failed items are left available for an explicit retry.
+    func resumePendingDownloads() async {
+        let pending = await store.allItems().filter { $0.state == .queued || $0.state == .downloading }
+        items = await store.allItems()
+        for item in pending { start(item) }
+    }
+
     @discardableResult
     func enqueue(
         bvid: String,
