@@ -2429,6 +2429,21 @@ nonisolated final class BiliAPIClient {
         try await mutateFollowingTag(path: "/x/relation/tag/del", fields: ["tagid": String(id)])
     }
 
+    func setFollowingTags(mid: Int, tagIDs: [Int]) async throws {
+        let snapshot = await requestSnapshot()
+        guard snapshot.isLoggedIn, let csrf = snapshot.csrfToken else { throw BiliAPIError.missingSESSDATA }
+        let response: BiliResponse<EmptyBiliPayload> = try await postForm(
+            base: baseURL,
+            path: "/x/relation/tags",
+            body: [
+                "fids": String(mid),
+                "tagids": tagIDs.map(String.init).joined(separator: ","),
+                "csrf": csrf
+            ]
+        )
+        guard response.code == 0 else { throw BiliAPIError.api(code: response.code, message: response.displayMessage) }
+    }
+
     private func mutateFollowingTag(path: String, fields: [String: String]) async throws {
         let snapshot = await requestSnapshot()
         guard snapshot.isLoggedIn, let csrf = snapshot.csrfToken else { throw BiliAPIError.missingSESSDATA }

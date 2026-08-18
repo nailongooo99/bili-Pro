@@ -8,6 +8,7 @@ struct FollowingsView: View {
     @State private var showingTagManager = false
     @State private var isLoading = true
     @State private var errorMessage: String?
+    @State private var editingUser: FollowingUser?
 
     var body: some View {
         Group {
@@ -43,6 +44,9 @@ struct FollowingsView: View {
                         if user.special == true { Image(systemName: "pin.fill").foregroundStyle(.secondary) }
                     }
                     .padding(.vertical, 4)
+                    .swipeActions(edge: .trailing) {
+                        Button { editingUser = user } label: { Label("Groups", systemImage: "folder") }
+                            .tint(.accentColor)
                     }
                 }
                 .listStyle(.insetGrouped)
@@ -56,6 +60,12 @@ struct FollowingsView: View {
         }
         .sheet(isPresented: $showingTagManager) {
             FollowingTagManagerView(api: api) { await load() }
+        }
+        .sheet(item: $editingUser) { user in
+            FollowingUserGroupsView(api: api, user: user, tags: tags) {
+                editingUser = nil
+                await load()
+            }
         }
         .onChange(of: selectedTagID) { _, _ in Task { await loadUsers() } }
         .task { await load() }
@@ -77,6 +87,49 @@ struct FollowingsView: View {
     private func loadUsers() async {
         do { users = try await api.fetchFollowingUsers(tagID: selectedTagID).list }
         catch { errorMessage = error.localizedDescription }
+    }
+}
+
+private struct FollowingUserGroupsView: View {
+    let api: BiliAPIClient
+    let user: FollowingUser
+    let tags: [FollowingTag]
+    let onSaved: () async -> Void
+    @Environment(\.dismiss) private var dismiss
+    @State private var selected: Set<Int> = []
+    @State private var isSaving = false
+
+    var body: some View {
+        NavigationStack {
+            List(tags) { tag in
+                Button {
+                    if selected.contains(tag.tagID) { selected.remove(tag.tagID) }
+                    else { selected.insert(tag.tagID) }
+                } label: {
+                    HStack {
+                        Text(tag.name)
+                        Spacer()
+                        if selected.contains(tag.tagID) { Image(systemName: "checkmark") }
+                    }
+                }
+                .foregroundStyle(.primary)
+            }
+            .navigationTitle(user.name)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        isSaving = true
+                        Task {
+                            try? await api.setFollowingTags(mid: user.mid, tagIDs: Array(selected))
+                            await onSaved()
+                        }
+                    }
+                    .disabled(isSaving)
+                }
+            }
+            .overlay { if tags.isEmpty { ContentUnavailableView("No groups", systemImage: "folder") } }
+        }
     }
 }
 
