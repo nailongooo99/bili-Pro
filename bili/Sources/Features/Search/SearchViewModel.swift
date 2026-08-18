@@ -56,6 +56,7 @@ enum SearchScope: String, CaseIterable, Identifiable, Hashable {
     case bangumi
     case movie
     case user
+    case article
 
     var id: String { rawValue }
 
@@ -71,6 +72,8 @@ enum SearchScope: String, CaseIterable, Identifiable, Hashable {
             return "影视"
         case .user:
             return "UP主"
+        case .article:
+            return "专栏"
         }
     }
 
@@ -86,6 +89,8 @@ enum SearchScope: String, CaseIterable, Identifiable, Hashable {
             return "film"
         case .user:
             return "person.crop.circle"
+        case .article:
+            return "doc.text"
         }
     }
 
@@ -287,6 +292,9 @@ final class SearchViewModel: ObservableObject {
         case .user:
             return try await api.searchUsers(keyword: keyword, page: page)
                 .map(SearchResultItem.user)
+        case .article:
+            return try await api.searchArticles(keyword: keyword, page: page)
+                .map(SearchResultItem.article)
         }
     }
 
