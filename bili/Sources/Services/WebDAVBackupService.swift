@@ -1,5 +1,41 @@
 import Foundation
 
+struct WebDAVBackupDocument: Codable, Sendable {
+    let formatVersion: Int
+    let createdAt: Date
+    let settings: [String: String]
+    let downloadManifest: Data
+}
+
+enum WebDAVBackupDocumentCodec {
+    private static let excludedFragments = [
+        "password", "cookie", "sessdata", "token", "csrf", "credential", "keychain", "accesskey", "refresh"
+    ]
+
+    static func makeDocument(downloadManifest: Data, defaults: UserDefaults = .standard) -> WebDAVBackupDocument {
+        var settings: [String: String] = [:]
+        for (key, value) in defaults.dictionaryRepresentation() {
+            let lowered = key.lowercased()
+            guard !excludedFragments.contains(where: lowered.contains) else { continue }
+            switch value {
+            case let value as String: settings[key] = value
+            case let value as NSNumber: settings[key] = value.stringValue
+            default: continue
+            }
+        }
+        return WebDAVBackupDocument(formatVersion: 1, createdAt: Date(), settings: settings, downloadManifest: downloadManifest)
+    }
+
+    static func restore(_ document: WebDAVBackupDocument, defaults: UserDefaults = .standard) throws {
+        guard document.formatVersion == 1 else { throw WebDAVBackupError.unsupportedBackupVersion }
+        for (key, value) in document.settings {
+            let lowered = key.lowercased()
+            guard !excludedFragments.contains(where: lowered.contains) else { continue }
+            defaults.set(value, forKey: key)
+        }
+    }
+}
+
 struct WebDAVConfiguration: Codable, Equatable, Sendable {
     let baseURL: URL
     let username: String
@@ -16,12 +52,14 @@ enum WebDAVBackupError: LocalizedError, Equatable {
     case invalidResponse
     case unauthorized
     case server(statusCode: Int)
+    case unsupportedBackupVersion
 
     var errorDescription: String? {
         switch self {
         case .invalidResponse: return "WebDAV returned an invalid response."
         case .unauthorized: return "WebDAV authentication failed."
         case .server(let statusCode): return "WebDAV server returned HTTP \(statusCode)."
+        case .unsupportedBackupVersion: return "This backup was created by an unsupported version of bili-Pro."
         }
     }
 }

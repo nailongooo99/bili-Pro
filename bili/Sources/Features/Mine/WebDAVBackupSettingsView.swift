@@ -48,11 +48,11 @@ struct WebDAVBackupSettingsView: View {
             }
 
             Section {
-                Button("Back up offline download manifest") { Task { await backupDownloads() } }
-                Button("Restore offline download manifest") { Task { await restoreDownloads() } }
+                Button("Back up settings and downloads") { Task { await backupDownloads() } }
+                Button("Restore settings and downloads") { Task { await restoreDownloads() } }
                     .disabled(isWorking)
             } footer: {
-                Text("Only the offline download manifest is backed up. Playback URLs may need to be refreshed after restore.")
+                Text("Safe app settings and the offline download manifest are backed up. Cookies, tokens, passwords, and Keychain credentials are never exported.")
             }
         }
         .navigationTitle("WebDAV Backup")
@@ -82,8 +82,10 @@ struct WebDAVBackupSettingsView: View {
         isWorking = true
         defer { isWorking = false }
         do {
-            try await service.upload(try await downloadStore.exportData(), configuration: configuration)
-            status = "Offline download manifest backed up"
+            let document = WebDAVBackupDocumentCodec.makeDocument(downloadManifest: try await downloadStore.exportData())
+            let data = try JSONEncoder.webDAV.encode(document)
+            try await service.upload(data, configuration: configuration)
+            status = "Settings and download manifest backed up"
         } catch { status = error.localizedDescription }
     }
 
@@ -92,8 +94,27 @@ struct WebDAVBackupSettingsView: View {
         isWorking = true
         defer { isWorking = false }
         do {
-            try await downloadStore.importData(try await service.download(configuration: configuration))
-            status = "Offline download manifest restored"
+            let data = try await service.download(configuration: configuration)
+            let document = try JSONDecoder.webDAV.decode(WebDAVBackupDocument.self, from: data)
+            try WebDAVBackupDocumentCodec.restore(document)
+            try await downloadStore.importData(document.downloadManifest)
+            status = "Settings and download manifest restored"
         } catch { status = error.localizedDescription }
+    }
+}
+
+private extension JSONEncoder {
+    static var webDAV: JSONEncoder {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        return encoder
+    }
+}
+
+private extension JSONDecoder {
+    static var webDAV: JSONDecoder {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return decoder
     }
 }
