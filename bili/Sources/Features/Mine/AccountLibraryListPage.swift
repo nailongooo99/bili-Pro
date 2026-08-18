@@ -24,8 +24,7 @@ struct AccountLibraryListPage: View {
                 .disabled(!sessionStore.isLoggedIn || state.isLoading)
             }
         }
-        .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: kind == .history ? .always : .automatic), prompt: "Search history")
-        .onChange(of: kind) { _, _ in searchText = "" }
+        .searchable(text: $searchText, prompt: kind == .history ? "Search history" : "Search")
         .task {
             await loadIfNeeded()
         }
