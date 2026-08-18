@@ -64,9 +64,9 @@ struct DynamicStandardFeedCardContent: View {
             DynamicFeedCardActionSection(
                 item: item,
                 display: display,
+                onShowComments: onShowComments,
                 api: api,
-                dynamicID: dynamicID,
-                onShowComments: onShowComments
+                dynamicID: dynamicID
             )
         }
         .padding(.top, 5)
