@@ -2437,7 +2437,8 @@ nonisolated final class BiliAPIClient {
             path: "/x/relation/tags",
             body: [
                 "fids": String(mid),
-                "tagids": tagIDs.map(String.init).joined(separator: ","),
+                // The relation API expects 0 when all groups are cleared.
+                "tagids": tagIDs.isEmpty ? "0" : tagIDs.map(String.init).joined(separator: ","),
                 "csrf": csrf
             ]
         )
