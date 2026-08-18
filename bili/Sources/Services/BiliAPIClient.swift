@@ -6177,6 +6177,11 @@ nonisolated final class BiliAPIClient {
             .filter { $0.articleID > 0 }
     }
 
+    func searchAudio(keyword: String, page: Int = 1) async throws -> [SearchAudioItem] {
+        try await searchTypedResults(keyword: keyword, searchType: "audio", page: page)
+            .filter { $0.id > 0 }
+    }
+
     private func searchTypedResults<Result: Decodable>(
         keyword: String,
         searchType: String,

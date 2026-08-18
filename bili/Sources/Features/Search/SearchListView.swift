@@ -240,7 +240,7 @@ private struct SearchScopedResultSkeletonRow: View {
         switch scope {
         case .user:
             SearchNonVideoResultSkeletonRow(style: .user)
-        case .bangumi, .movie, .article:
+        case .bangumi, .movie, .article, .audio:
             SearchNonVideoResultSkeletonRow(style: .media)
         case .comprehensive, .video:
             SearchVideoResultSkeletonRow()

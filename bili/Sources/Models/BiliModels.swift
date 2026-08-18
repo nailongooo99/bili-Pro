@@ -3327,6 +3327,25 @@ nonisolated struct SearchTypeData<Result: Decodable>: Decodable {
     let result: [Result]?
 }
 
+nonisolated struct SearchAudioItem: Identifiable, Decodable, Hashable {
+    let id: Int
+    let title: String
+    let cover: String?
+    let author: String?
+    let description: String?
+
+    enum CodingKeys: String, CodingKey { case id, title, cover, pic, author, uname, description, intro }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = container.decodeLossyIntIfPresent(forKey: .id) ?? 0
+        title = (try? container.decode(String.self, forKey: .title))?.removingHTMLTags() ?? "Untitled audio"
+        cover = (try? container.decodeIfPresent(String.self, forKey: .cover)) ?? (try? container.decodeIfPresent(String.self, forKey: .pic))
+        author = (try? container.decodeIfPresent(String.self, forKey: .author)) ?? (try? container.decodeIfPresent(String.self, forKey: .uname))
+        description = (try? container.decodeIfPresent(String.self, forKey: .description)) ?? (try? container.decodeIfPresent(String.self, forKey: .intro))
+    }
+}
+
 nonisolated struct SearchVideoItem: Identifiable, Decodable, Hashable {
     var id: String { bvid }
 
