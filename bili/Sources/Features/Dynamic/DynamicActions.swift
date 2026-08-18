@@ -17,11 +17,15 @@ struct DynamicFeedActionBar: View {
         display: DynamicFeedCardDisplayModel,
         initialIsLiked: Bool,
         initialLikeCount: Int,
+        api: BiliAPIClient,
+        dynamicID: String,
         onShowComments: @escaping () -> Void
     ) {
         self.display = display
         self.initialIsLiked = initialIsLiked
         self.initialLikeCount = initialLikeCount
+        self.api = api
+        self.dynamicID = dynamicID
         self.onShowComments = onShowComments
         _isLiked = State(initialValue: initialIsLiked)
         _likeCount = State(initialValue: initialLikeCount)
