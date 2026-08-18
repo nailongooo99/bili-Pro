@@ -5,7 +5,7 @@ This document records the feature gap between the current SwiftUI base and the i
 ## Already present in the SwiftUI base
 
 - Home recommendation, search, uploader space, video detail and related videos
-- Dynamic feed with image/video/repost cards and comments/replies
+- Dynamic feed with image/video/repost cards and comments/replies; text and single-image publishing
 - AVPlayer/HLS playback, quality selection, playback history and diagnostics
 - Danmaku rendering, settings and keyword filtering
 - Live feed, live room playback and live danmaku
@@ -31,7 +31,7 @@ This document records the feature gap between the current SwiftUI base and the i
 - Follow groups and follow-list filtering
 - Watch-later list, video-detail save action, and swipe-to-remove management
 - Dynamic text publishing, repost, and like synchronization
-- Dynamic image/video publishing, vote and reserve flows
+- Dynamic video publishing, vote and reserve flows
 - More complete message/reply notification sections
 
 ### P2: content breadth
