@@ -20,17 +20,13 @@ jobs:
         run: |
           set -euo pipefail
           ls -1 /Applications | grep -E '^Xcode' || true
-          if [ -d "/Applications/Xcode_26.4.app" ]; then
-            sudo xcode-select -s /Applications/Xcode_26.4.app
-          elif [ -d "/Applications/Xcode_26.3.app" ]; then
-            sudo xcode-select -s /Applications/Xcode_26.3.app
-          elif [ -d "/Applications/Xcode_26.2.app" ]; then
-            sudo xcode-select -s /Applications/Xcode_26.2.app
-          elif [ -d "/Applications/Xcode_26.1.1.app" ]; then
-            sudo xcode-select -s /Applications/Xcode_26.1.1.app
-          elif [ -d "/Applications/Xcode_26.0.1.app" ]; then
-            sudo xcode-select -s /Applications/Xcode_26.0.1.app
+          XCODE_APP="$(find /Applications -maxdepth 1 -type d -name 'Xcode*.app' -print | sort -V | tail -n 1)"
+          if [ -z "$XCODE_APP" ]; then
+            echo "No Xcode.app was found on the runner." >&2
+            exit 1
           fi
+          echo "Selecting $XCODE_APP"
+          sudo xcode-select -s "$XCODE_APP"
           xcodebuild -version
           xcodebuild -showsdks
 
