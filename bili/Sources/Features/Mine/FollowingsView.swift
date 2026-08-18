@@ -52,6 +52,7 @@ struct FollowingsView: View {
                 .listStyle(.insetGrouped)
             }
         }
+        }
         .navigationTitle("Following")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
