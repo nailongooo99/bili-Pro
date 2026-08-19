@@ -20,6 +20,12 @@ struct MineSettingsSection: View {
             }
 
             MineOverlayNavigationButton {
+                onOpenRoute(.popularSeries)
+            } label: {
+                Label("Weekly Picks", systemImage: "calendar.badge.star")
+            }
+
+            MineOverlayNavigationButton {
                 onOpenRoute(.interfaceSettings)
             } label: {
                 SettingsNavigationRow(

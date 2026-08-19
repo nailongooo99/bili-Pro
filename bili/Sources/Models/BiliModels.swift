@@ -118,6 +118,26 @@ nonisolated struct BiliPage<T: Decodable>: Decodable {
     let result: [T]?
 }
 
+nonisolated struct PopularSeriesItem: Decodable, Identifiable, Hashable, Sendable {
+    let number: Int
+    let subject: String
+    let status: Int?
+    let name: String
+
+    var id: Int { number }
+}
+
+nonisolated struct PopularSeriesListData: Decodable, Sendable {
+    let list: [PopularSeriesItem]
+}
+
+nonisolated struct PopularSeriesDetail: Decodable, Identifiable, Sendable {
+    let config: PopularSeriesItem
+    let list: [VideoItem]
+
+    var id: Int { config.number }
+}
+
 nonisolated struct VideoItem: Identifiable, Decodable, Hashable, Sendable {
     nonisolated var id: String { bvid }
 

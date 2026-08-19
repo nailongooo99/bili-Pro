@@ -48,6 +48,8 @@ struct RootMineNavigationDestination: View {
                 FollowingsView(api: api)
             case .ranking:
                 RankingView(api: api)
+            case .popularSeries:
+                PopularSeriesView(api: api)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
