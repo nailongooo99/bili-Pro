@@ -2,7 +2,7 @@
 
 This document records the feature gap between the current SwiftUI base and the inspected PiliPlus source tree. Existing cilicili functionality is intentionally preserved; this is an implementation backlog, not a claim that every item is already complete.
 
-## Already present in the SwiftUI base
+## Implemented in bili-Pro
 
 - Home recommendation, search, uploader space, video detail and related videos
 - Dynamic feed with image/video/repost cards and comments/replies; text and single-image publishing
@@ -14,33 +14,31 @@ This document records the feature gap between the current SwiftUI base and the i
 - Private messages/account messages
 - Multi-account session models and Keychain-backed credentials
 - SponsorBlock and CDN/playback optimization
+- Streaming offline download progress, queue pause/resume/retry, local muxing and offline playback
+- WebDAV encrypted/safe backup and restore with credentials kept in Keychain
+- DLNA renderer discovery and playback handoff
+- Follow list, follow groups, watch later and history search
+- Dynamic text/image publishing, repost, like synchronization and vote publishing
+- Ranking, article search and audio search routes
 
 ## Priority parity work
 
-### P0: download and backup foundations
+### P0: remaining platform work
 
-- Background-aware download task model with pause/resume/retry states and queue rehydration
-- Video/audio stream selection and local muxing into a playable local MP4
-- Download library and offline playback route
-- WebDAV backup/restore for safe app settings and download manifests (credentials/tokens remain local Keychain data)
-- Secure credential storage for WebDAV; never persist passwords in UserDefaults
+- True system-background downloads using a background `URLSession` delegate, including process relaunch recovery
 
-### P1: device and social expansion
+### P1: remaining social/content work
 
-- DLNA discovery, renderer selection and playback handoff
-- Follow groups and follow-list filtering
-- Watch-later list, video-detail save action, and swipe-to-remove management
-- Dynamic text publishing, repost, and like synchronization
-- Dynamic video publishing, vote and reserve flows
+- Dynamic video投稿/upload pipeline (preupload, UPOS multipart upload, completion and稿件 submission)
+- Complete dynamic reserve-card creation and publishing
 - More complete message/reply notification sections
 
 ### P2: content breadth
 
-- Article and audio browsing
-- Ranking page (official ranking API and Mine route); popular series and precious popular pages remain
-- History search (watch-later management is implemented)
+- Audio has search and web route; a native audio detail/player remains
+- Popular series and precious popular pages remain
 - Expanded PGC review and season browsing
 
 ## Implementation rules
 
-Each feature should be implemented as Swift/SwiftUI code on top of the existing `BiliAPIClient`, `SessionStore`, `LibraryStore`, feature ViewModels and design system. API DTOs must be mapped into domain models; views must not parse response JSON or hold credentials. Every network feature needs loading/empty/error states and at least one focused unit test before it is enabled in the root navigation.
+Each feature is implemented as Swift/SwiftUI code on top of the existing `BiliAPIClient`, `SessionStore`, `LibraryStore`, feature ViewModels and design system. API DTOs are mapped into domain models; views do not parse response JSON or hold credentials. Remaining network features must follow the same loading/empty/error-state and focused-test requirements before being enabled in root navigation.
