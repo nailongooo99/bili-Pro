@@ -87,6 +87,7 @@ struct RootTabView: View {
             switch phase {
             case .active:
                 Task {
+                    await dependencies.offlineDownloadManager.resumePendingDownloads()
                     await refreshHomeMessageUnreadIfNeeded()
                 }
             case .background:
