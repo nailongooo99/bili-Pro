@@ -2,10 +2,6 @@ name: Build unsigned IPA
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-      - master
 
 concurrency:
   group: unsigned-ipa-${{ github.ref }}
