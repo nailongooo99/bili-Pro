@@ -1130,6 +1130,7 @@ nonisolated final class BiliAPIClient {
         let response: BiliResponse<PopularSeriesListData> = try await get(
             base: baseURL,
             path: "/x/web-interface/popular/series/list",
+            query: [:],
             responseCachePolicy: .brief
         )
         guard response.code == 0 else { throw BiliAPIError.api(code: response.code, message: response.displayMessage) }
