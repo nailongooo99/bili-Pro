@@ -1126,6 +1126,17 @@ nonisolated final class BiliAPIClient {
         return response.payload?.list ?? []
     }
 
+    func fetchPreciousPopularVideos() async throws -> [VideoItem] {
+        let response: BiliResponse<PopularVideoListData> = try await get(
+            base: baseURL,
+            path: "/x/web-interface/popular/precious",
+            query: [:],
+            responseCachePolicy: .brief
+        )
+        guard response.code == 0 else { throw BiliAPIError.api(code: response.code, message: response.displayMessage) }
+        return response.payload?.list ?? []
+    }
+
     func fetchPopularSeries() async throws -> [PopularSeriesItem] {
         let response: BiliResponse<PopularSeriesListData> = try await get(
             base: baseURL,

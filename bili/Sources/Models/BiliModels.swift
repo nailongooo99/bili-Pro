@@ -131,6 +131,10 @@ nonisolated struct PopularSeriesListData: Decodable, Sendable {
     let list: [PopularSeriesItem]
 }
 
+nonisolated struct PopularVideoListData: Decodable, Sendable {
+    let list: [VideoItem]
+}
+
 nonisolated struct PopularSeriesDetail: Decodable, Identifiable, Sendable {
     let config: PopularSeriesItem
     let list: [VideoItem]

@@ -26,6 +26,12 @@ struct MineSettingsSection: View {
             }
 
             MineOverlayNavigationButton {
+                onOpenRoute(.preciousPopular)
+            } label: {
+                Label("Precious Popular", systemImage: "sparkles.tv")
+            }
+
+            MineOverlayNavigationButton {
                 onOpenRoute(.interfaceSettings)
             } label: {
                 SettingsNavigationRow(

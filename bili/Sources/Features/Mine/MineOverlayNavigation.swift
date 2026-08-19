@@ -17,6 +17,7 @@ enum MineOverlayRoute: Hashable {
     case followings
     case ranking
     case popularSeries
+    case preciousPopular
 }
 
 struct MineOverlayNavigationButton<Label: View>: View {
