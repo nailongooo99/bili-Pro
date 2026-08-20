@@ -20,6 +20,7 @@ This document records the feature gap between the current SwiftUI base and the i
 - DLNA renderer discovery and playback handoff
 - Follow list, follow groups, watch later and history search
 - Dynamic text/image publishing, repost, like synchronization and vote publishing
+- Dynamic reservation-card creation and publishing, including server-issued reservation IDs
 - Ranking, article search and audio search routes
 - Native audio detail and AVPlayer playback from audio search results
 - Popular series browsing (list and selected issue)
@@ -30,7 +31,6 @@ This document records the feature gap between the current SwiftUI base and the i
 ### P1: remaining social/content work
 
 - Dynamic video投稿/upload pipeline (preupload, UPOS multipart upload, completion and稿件 submission)
-- Complete dynamic reserve-card creation and publishing
 - More complete message/reply notification sections
 
 ### P2: content breadth
