@@ -6552,6 +6552,32 @@ nonisolated final class BiliAPIClient {
         guard response.code == 0 else { throw BiliAPIError.api(code: response.code, message: response.displayMessage) }
     }
 
+    /// Publishes a text dynamic with an already-created UP reservation card.
+    /// Reservation creation itself is account/permission gated; this endpoint
+    /// only attaches the server-issued business id to the dynamic.
+    func publishReserveDynamic(content: String, reserveID: Int, source: Int = 0) async throws {
+        let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard reserveID > 0 else { throw BiliAPIError.api(code: -1, message: "预约卡 ID 无效") }
+        let context = try await requireCSRFContext(for: .interaction)
+        let dynRequest: [String: Any] = [
+            "content": ["contents": trimmed.isEmpty ? [] : [["raw_text": trimmed, "type": 1, "biz_id": ""]]],
+            "scene": 1,
+            "upload_id": "0_\(Int(Date().timeIntervalSince1970))",
+            "meta": ["app_meta": ["from": "create.dynamic.web", "mobi_app": "web"]],
+            "attach_card": ["type": "reserve", "biz_id": String(reserveID), "reserve_source": source]
+        ]
+        let data = try JSONSerialization.data(withJSONObject: dynRequest)
+        let response: BiliResponse<DynamicJSONValue> = try await postForm(
+            base: baseURL,
+            path: "/x/dynamic/feed/create/dyn",
+            body: ["dyn_req": String(decoding: data, as: UTF8.self), "platform": "web", "csrf": context.csrf],
+            referer: "https://t.bilibili.com/",
+            cookieHeader: context.snapshot.cookieHeader,
+            retryPolicy: .idempotentMutation
+        )
+        guard response.code == 0 else { throw BiliAPIError.api(code: response.code, message: response.displayMessage) }
+    }
+
     func repostDynamic(id: String, content: String) async throws {
         let context = try await requireCSRFContext(for: .interaction)
         let requestObject: [String: Any] = [

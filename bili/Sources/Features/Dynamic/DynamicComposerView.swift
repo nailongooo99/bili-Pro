@@ -10,6 +10,9 @@ struct DynamicComposerView: View {
     @State private var selectedPhoto: PhotosPickerItem?
     @State private var imageData: Data?
     @State private var isPoll = false
+    @State private var isReserve = false
+    @State private var reserveID = ""
+    @State private var reserveSource = "0"
     @State private var pollTitle = ""
     @State private var pollOptions = ["", ""]
     @State private var isPublishing = false
@@ -46,6 +49,7 @@ struct DynamicComposerView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 14))
                 }
                 Toggle("Add seven-day poll", isOn: $isPoll)
+                    .disabled(isReserve)
                 if isPoll {
                     TextField("Poll title", text: $pollTitle)
                     ForEach(pollOptions.indices, id: \.self) { index in
@@ -59,6 +63,14 @@ struct DynamicComposerView: View {
                     Button("Add option") { pollOptions.append("") }
                         .font(.caption)
                 }
+                Toggle("Attach existing reservation card", isOn: $isReserve)
+                    .disabled(isPoll)
+                if isReserve {
+                    TextField("Reservation ID", text: $reserveID)
+                        .keyboardType(.numberPad)
+                    TextField("Reservation source (optional)", text: $reserveSource)
+                        .keyboardType(.numberPad)
+                }
                 Spacer()
             }
             .padding()
@@ -69,7 +81,7 @@ struct DynamicComposerView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Publish") { Task { await publish() } }
-                        .disabled(isPublishing || (content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && imageData == nil && !isPoll))
+                    .disabled(isPublishing || (content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && imageData == nil && !isPoll && !isReserve))
                 }
             }
             .overlay { if isPublishing { ProgressView() } }
@@ -91,7 +103,16 @@ struct DynamicComposerView: View {
         isPublishing = true
         defer { isPublishing = false }
         do {
-            if isPoll {
+            if isReserve {
+                guard let id = Int(reserveID.trimmingCharacters(in: .whitespacesAndNewlines)), id > 0 else {
+                    throw BiliAPIError.api(code: -1, message: "请输入有效的预约卡 ID")
+                }
+                try await api.publishReserveDynamic(
+                    content: content,
+                    reserveID: id,
+                    source: Int(reserveSource) ?? 0
+                )
+            } else if isPoll {
                 try await api.publishPollDynamic(content: content, title: pollTitle, options: pollOptions)
             } else if let imageData {
                 try await api.publishImageDynamic(content, imageData: imageData)
