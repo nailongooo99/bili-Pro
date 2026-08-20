@@ -6593,7 +6593,7 @@ nonisolated final class BiliAPIClient {
         )
         guard response.code == 0 else { throw BiliAPIError.api(code: response.code, message: response.displayMessage) }
         guard let object = response.payload?.objectValueForDynamicParsing,
-              let sid = object["sid"]?.intValue ?? object["id"]?.intValue else { throw BiliAPIError.missingPayload }
+              let sid = object["sid"]?.intValueForDynamicParsing ?? object["id"]?.intValueForDynamicParsing else { throw BiliAPIError.missingPayload }
         return sid
     }
 
