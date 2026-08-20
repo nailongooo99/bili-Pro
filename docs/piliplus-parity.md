@@ -29,7 +29,7 @@ This document records the feature gap between the current SwiftUI base and the i
 
 ## Priority parity work
 
-### Verification notes
+### Verification notes (including a historical audit label)
 
 - Dynamic video投稿/upload pipeline (preupload, UPOS multipart upload, completion and稿件 submission)
 - PiliPlus 2.1.0's dynamic composer publishes text/images, polls and links or attaches existing archive cards. Its `upload_bfs` endpoint is image upload for dynamic cards, not a video-archive preupload/UPOS submission pipeline; no unsupported video-archive uploader is claimed here.
