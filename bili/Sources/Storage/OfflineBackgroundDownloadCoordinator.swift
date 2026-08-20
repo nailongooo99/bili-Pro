@@ -4,6 +4,7 @@ import Foundation
 /// the app is suspended or relaunched. The durable item index remains the
 /// source of truth; taskDescription is the bridge back to that index.
 final class OfflineBackgroundDownloadCoordinator: NSObject, URLSessionDownloadDelegate, @unchecked Sendable {
+    nonisolated(unsafe) static var backgroundEventsCompletion: (() -> Void)?
     private let store: OfflineDownloadStore
     private var session: URLSession!
     private let fileManager = FileManager.default
@@ -34,7 +35,11 @@ final class OfflineBackgroundDownloadCoordinator: NSObject, URLSessionDownloadDe
         }
     }
 
-    func urlSessionDidFinishEvents(forBackgroundURLSession session: URLSession) { }
+    func urlSessionDidFinishEvents(forBackgroundURLSession session: URLSession) {
+        let completion = Self.backgroundEventsCompletion
+        Self.backgroundEventsCompletion = nil
+        DispatchQueue.main.async { completion?() }
+    }
 
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
         guard let rawID = downloadTask.taskDescription, let id = UUID(uuidString: rawID) else { return }

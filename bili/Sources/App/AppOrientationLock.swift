@@ -72,6 +72,18 @@ private extension UIWindow {
 final class AppDelegate: NSObject, UIApplicationDelegate {
     func application(
         _ application: UIApplication,
+        handleEventsForBackgroundURLSession identifier: String,
+        completionHandler: @escaping () -> Void
+    ) {
+        guard identifier == "cc.bili.offline-downloads" else {
+            completionHandler()
+            return
+        }
+        OfflineBackgroundDownloadCoordinator.backgroundEventsCompletion = completionHandler
+    }
+
+    func application(
+        _ application: UIApplication,
         willFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
         UIWindow.appearance().backgroundColor = LaunchAppearance.backgroundColor
