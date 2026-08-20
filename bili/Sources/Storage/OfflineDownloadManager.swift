@@ -8,11 +8,13 @@ final class OfflineDownloadManager: ObservableObject {
 
     private let store: OfflineDownloadStore
     private let session: URLSession
+    private let backgroundCoordinator: OfflineBackgroundDownloadCoordinator
     private var tasks: [UUID: Task<Void, Never>] = [:]
 
     init(store: OfflineDownloadStore = OfflineDownloadStore(), session: URLSession = .shared) {
         self.store = store
         self.session = session
+        self.backgroundCoordinator = OfflineBackgroundDownloadCoordinator(store: store)
     }
 
     func refresh() async {
@@ -58,6 +60,7 @@ final class OfflineDownloadManager: ObservableObject {
     func pause(id: UUID) async {
         tasks[id]?.cancel()
         tasks[id] = nil
+        backgroundCoordinator.cancel(id: id)
         _ = try? await store.update(id: id) {
             guard $0.state == .downloading || $0.state == .queued else { return }
             $0.state = .paused
@@ -73,11 +76,16 @@ final class OfflineDownloadManager: ObservableObject {
     func remove(id: UUID) async {
         tasks[id]?.cancel()
         tasks[id] = nil
+        backgroundCoordinator.cancel(id: id)
         try? await store.remove(id: id, removeFiles: true)
         await refresh()
     }
 
     private func start(_ item: OfflineDownloadItem) {
+        if item.audioURL == nil {
+            backgroundCoordinator.start(item)
+            return
+        }
         tasks[item.id]?.cancel()
         tasks[item.id] = Task { [weak self] in
             guard let self else { return }
