@@ -6597,6 +6597,22 @@ nonisolated final class BiliAPIClient {
         return sid
     }
 
+    /// Updates an existing live reservation card.
+    func updateLiveReservation(id: Int, title: String, startTime: Date, subType: Int = 0) async throws {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard id > 0, !trimmed.isEmpty else { throw BiliAPIError.api(code: -1, message: "预约信息无效") }
+        let context = try await requireCSRFContext(for: .interaction)
+        let response: BiliResponse<DynamicJSONValue> = try await postForm(
+            base: baseURL,
+            path: "/x/new-reserve/up/reserve/update",
+            body: ["type": "2", "sub_type": String(subType), "from": "1", "title": trimmed,
+                   "live_plan_start_time": String(Int(startTime.timeIntervalSince1970)), "id": String(id), "csrf": context.csrf],
+            referer: "https://t.bilibili.com/", cookieHeader: context.snapshot.cookieHeader,
+            retryPolicy: .idempotentMutation
+        )
+        guard response.code == 0 else { throw BiliAPIError.api(code: response.code, message: response.displayMessage) }
+    }
+
     func repostDynamic(id: String, content: String) async throws {
         let context = try await requireCSRFContext(for: .interaction)
         let requestObject: [String: Any] = [

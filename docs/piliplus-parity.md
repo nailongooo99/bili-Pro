@@ -25,17 +25,15 @@ This document records the feature gap between the current SwiftUI base and the i
 - Native audio detail and AVPlayer playback from audio search results
 - Popular series browsing (list and selected issue)
 - Precious popular video feed
+- Full account notification center: replies, mentions, likes, system notices, unread badges, pagination and private-message routing
 
 ## Priority parity work
 
-### P1: remaining social/content work
+### Verification notes
 
 - Dynamic video投稿/upload pipeline (preupload, UPOS multipart upload, completion and稿件 submission)
-- More complete message/reply notification sections
-
-### P2: content breadth
-
-- Expanded PGC review and season browsing
+- PiliPlus 2.1.0's dynamic composer publishes text/images, polls and links or attaches existing archive cards. Its `upload_bfs` endpoint is image upload for dynamic cards, not a video-archive preupload/UPOS submission pipeline; no unsupported video-archive uploader is claimed here.
+- PGC season/episode playback and browsing routes are implemented in `VideoDetailPgcEpisodeSection` and `PgcSeasonPlaybackRouteView`.
 
 ## Implementation rules
 

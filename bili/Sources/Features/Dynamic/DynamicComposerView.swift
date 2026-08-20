@@ -16,6 +16,7 @@ struct DynamicComposerView: View {
     @State private var createReservation = false
     @State private var reservationTitle = ""
     @State private var reservationDate = Date().addingTimeInterval(3600)
+    @State private var reservationSubType = 0
     @State private var pollTitle = ""
     @State private var pollOptions = ["", ""]
     @State private var isPublishing = false
@@ -71,8 +72,12 @@ struct DynamicComposerView: View {
                 if isReserve {
                     Toggle("Create a new live reservation card", isOn: $createReservation)
                     if createReservation {
+                        Picker("Reservation type", selection: $reservationSubType) {
+                            Text("Public live").tag(0)
+                            Text("Grand voyage live").tag(1)
+                        }
                         TextField("Reservation title", text: $reservationTitle)
-                        DatePicker("Start time", selection: $reservationDate, in: Date()...)
+                        DatePicker("Start time", selection: $reservationDate, in: Date().addingTimeInterval(300)...)
                     }
                     TextField("Reservation ID", text: $reserveID)
                         .keyboardType(.numberPad)
@@ -115,7 +120,7 @@ struct DynamicComposerView: View {
             if isReserve {
                 let id: Int
                 if createReservation {
-                    id = try await api.createLiveReservation(title: reservationTitle, startTime: reservationDate)
+                    id = try await api.createLiveReservation(title: reservationTitle, startTime: reservationDate, subType: reservationSubType)
                 } else {
                     guard let existingID = Int(reserveID.trimmingCharacters(in: .whitespacesAndNewlines)), existingID > 0 else {
                         throw BiliAPIError.api(code: -1, message: "请输入有效的预约卡 ID")
