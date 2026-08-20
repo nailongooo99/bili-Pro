@@ -13,6 +13,9 @@ struct DynamicComposerView: View {
     @State private var isReserve = false
     @State private var reserveID = ""
     @State private var reserveSource = "0"
+    @State private var createReservation = false
+    @State private var reservationTitle = ""
+    @State private var reservationDate = Date().addingTimeInterval(3600)
     @State private var pollTitle = ""
     @State private var pollOptions = ["", ""]
     @State private var isPublishing = false
@@ -66,8 +69,14 @@ struct DynamicComposerView: View {
                 Toggle("Attach existing reservation card", isOn: $isReserve)
                     .disabled(isPoll)
                 if isReserve {
+                    Toggle("Create a new live reservation card", isOn: $createReservation)
+                    if createReservation {
+                        TextField("Reservation title", text: $reservationTitle)
+                        DatePicker("Start time", selection: $reservationDate, in: Date()...)
+                    }
                     TextField("Reservation ID", text: $reserveID)
                         .keyboardType(.numberPad)
+                        .disabled(createReservation)
                     TextField("Reservation source (optional)", text: $reserveSource)
                         .keyboardType(.numberPad)
                 }
@@ -104,8 +113,14 @@ struct DynamicComposerView: View {
         defer { isPublishing = false }
         do {
             if isReserve {
-                guard let id = Int(reserveID.trimmingCharacters(in: .whitespacesAndNewlines)), id > 0 else {
-                    throw BiliAPIError.api(code: -1, message: "请输入有效的预约卡 ID")
+                let id: Int
+                if createReservation {
+                    id = try await api.createLiveReservation(title: reservationTitle, startTime: reservationDate)
+                } else {
+                    guard let existingID = Int(reserveID.trimmingCharacters(in: .whitespacesAndNewlines)), existingID > 0 else {
+                        throw BiliAPIError.api(code: -1, message: "请输入有效的预约卡 ID")
+                    }
+                    id = existingID
                 }
                 try await api.publishReserveDynamic(
                     content: content,

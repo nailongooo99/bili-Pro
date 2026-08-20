@@ -6578,6 +6578,25 @@ nonisolated final class BiliAPIClient {
         guard response.code == 0 else { throw BiliAPIError.api(code: response.code, message: response.displayMessage) }
     }
 
+    /// Creates a live reservation card and returns the server-issued sid.
+    func createLiveReservation(title: String, startTime: Date, subType: Int = 0) async throws -> Int {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { throw BiliAPIError.api(code: -1, message: "预约标题不能为空") }
+        let context = try await requireCSRFContext(for: .interaction)
+        let response: BiliResponse<DynamicJSONValue> = try await postForm(
+            base: baseURL,
+            path: "/x/new-reserve/up/reserve/create",
+            body: ["type": "2", "sub_type": String(subType), "from": "1", "title": trimmed,
+                   "live_plan_start_time": String(Int(startTime.timeIntervalSince1970)), "csrf": context.csrf],
+            referer: "https://t.bilibili.com/", cookieHeader: context.snapshot.cookieHeader,
+            retryPolicy: .idempotentMutation
+        )
+        guard response.code == 0 else { throw BiliAPIError.api(code: response.code, message: response.displayMessage) }
+        guard let object = response.payload?.objectValueForDynamicParsing,
+              let sid = object["sid"]?.intValue ?? object["id"]?.intValue else { throw BiliAPIError.missingPayload }
+        return sid
+    }
+
     func repostDynamic(id: String, content: String) async throws {
         let context = try await requireCSRFContext(for: .interaction)
         let requestObject: [String: Any] = [
