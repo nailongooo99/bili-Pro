@@ -15,6 +15,7 @@ This document records the feature gap between the current SwiftUI base and the i
 - Multi-account session models and Keychain-backed credentials
 - SponsorBlock and CDN/playback optimization
 - Streaming offline download progress, queue pause/resume/retry, local muxing and offline playback
+- System-managed background video downloads through background URLSession callbacks
 - WebDAV encrypted/safe backup and restore with credentials kept in Keychain
 - DLNA renderer discovery and playback handoff
 - Follow list, follow groups, watch later and history search
@@ -25,10 +26,6 @@ This document records the feature gap between the current SwiftUI base and the i
 - Precious popular video feed
 
 ## Priority parity work
-
-### P0: remaining platform work
-
-- True system-background downloads using a background `URLSession` delegate, including process relaunch recovery
 
 ### P1: remaining social/content work
 
