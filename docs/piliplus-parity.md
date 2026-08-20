@@ -20,6 +20,7 @@ This document records the feature gap between the current SwiftUI base and the i
 - Follow list, follow groups, watch later and history search
 - Dynamic text/image publishing, repost, like synchronization and vote publishing
 - Ranking, article search and audio search routes
+- Native audio detail and AVPlayer playback from audio search results
 - Popular series browsing (list and selected issue)
 - Precious popular video feed
 
@@ -37,7 +38,6 @@ This document records the feature gap between the current SwiftUI base and the i
 
 ### P2: content breadth
 
-- Audio has search and web route; a native audio detail/player remains
 - Expanded PGC review and season browsing
 
 ## Implementation rules
