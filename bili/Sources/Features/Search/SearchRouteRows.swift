@@ -72,8 +72,9 @@ private struct SearchAudioRouteRow: View {
     let audio: SearchAudioItem
 
     var body: some View {
-        let url = URL(string: "https://www.bilibili.com/audio/au\(audio.id)")!
-        AppLinkButton(url: url) {
+        NavigationLink {
+            AudioDetailView(audio: audio)
+        } label: {
             HStack(alignment: .top, spacing: 10) {
                 SearchPosterCover(
                     sourceURLString: audio.cover?.normalizedBiliURL(),
@@ -91,5 +92,6 @@ private struct SearchAudioRouteRow: View {
             }
             .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
     }
 }

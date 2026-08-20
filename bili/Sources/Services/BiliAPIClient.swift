@@ -123,6 +123,7 @@ nonisolated struct AccountVideoEntryPage {
 
 nonisolated final class BiliAPIClient {
     private let baseURL = URL(string: "https://api.bilibili.com")!
+    private let audioWebURL = URL(string: "https://www.bilibili.com")!
     private let appURL = URL(string: "https://app.bilibili.com")!
     private let passportURL = URL(string: "https://passport.bilibili.com")!
     private let liveURL = URL(string: "https://api.live.bilibili.com")!
@@ -6215,6 +6216,28 @@ nonisolated final class BiliAPIClient {
     func searchAudio(keyword: String, page: Int = 1) async throws -> [SearchAudioItem] {
         try await searchTypedResults(keyword: keyword, searchType: "audio", page: page)
             .filter { $0.id > 0 }
+    }
+
+    func fetchAudioDetail(sid: Int) async throws -> AudioDetail {
+        let response: BiliResponse<AudioDetail> = try await get(
+            base: audioWebURL,
+            path: "/audio/music-service-c/web/song/info",
+            query: ["sid": String(sid)],
+            referer: "https://www.bilibili.com/audio/au\(sid)"
+        )
+        guard let payload = response.payload else { throw BiliAPIError.missingPayload }
+        return payload
+    }
+
+    func fetchAudioPlayURL(sid: Int) async throws -> URL {
+        let response: BiliResponse<AudioPlayData> = try await get(
+            base: audioWebURL,
+            path: "/audio/music-service-c/web/url",
+            query: ["sid": String(sid)],
+            referer: "https://www.bilibili.com/audio/au\(sid)"
+        )
+        guard let url = response.payload?.cdns?.first else { throw BiliAPIError.missingPayload }
+        return url
     }
 
     private func searchTypedResults<Result: Decodable>(

@@ -3370,6 +3370,34 @@ nonisolated struct SearchAudioItem: Identifiable, Decodable, Hashable {
     }
 }
 
+nonisolated struct AudioDetail: Decodable, Hashable, Sendable {
+    let id: Int
+    let title: String
+    let cover: String?
+    let author: String?
+    let intro: String?
+    let duration: Int?
+    let lyricURL: URL?
+
+    enum CodingKeys: String, CodingKey { case id, sid, title, cover, author, uname, intro, description, duration, lyric, lyricURL = "lyric_url" }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = container.decodeLossyIntIfPresent(forKey: .id) ?? container.decodeLossyIntIfPresent(forKey: .sid) ?? 0
+        title = (try? container.decode(String.self, forKey: .title))?.removingHTMLTags() ?? "Untitled audio"
+        cover = try? container.decodeIfPresent(String.self, forKey: .cover)
+        author = (try? container.decodeIfPresent(String.self, forKey: .author)) ?? (try? container.decodeIfPresent(String.self, forKey: .uname))
+        intro = (try? container.decodeIfPresent(String.self, forKey: .intro)) ?? (try? container.decodeIfPresent(String.self, forKey: .description))
+        duration = container.decodeLossyIntIfPresent(forKey: .duration)
+        lyricURL = (try? container.decodeIfPresent(URL.self, forKey: .lyric)) ?? (try? container.decodeIfPresent(URL.self, forKey: .lyricURL))
+    }
+}
+
+nonisolated struct AudioPlayData: Decodable, Sendable {
+    let cdns: [URL]?
+    let size: Int?
+}
+
 nonisolated struct SearchVideoItem: Identifiable, Decodable, Hashable {
     var id: String { bvid }
 
